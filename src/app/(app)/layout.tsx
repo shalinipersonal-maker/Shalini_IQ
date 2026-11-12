@@ -1,7 +1,8 @@
 "use client";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
-import { Sidebar } from "@/components/shell/sidebar";
+import { BrandMark, Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
 import { Sheet, Skeleton } from "@/components/ui";
 import { useStore } from "@/lib/store";
@@ -21,9 +22,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const path = usePathname();
   const [navOpen, setNavOpen] = React.useState(false);
-  React.useEffect(() => { if (hydrated && !session) router.replace("/login"); }, [hydrated, session, router]);
+  const signIn = useStore((s) => s.signIn);
+  const isStudio = path.startsWith("/studio");
+  React.useEffect(() => {
+    if (!hydrated || session) return;
+    // Shalini_IQ build: Creative Studio opens straight into Shalini's own design space (saved in this browser).
+    if (isStudio) signIn({ name: "Shalini", role: "admin", email: "shalinipersonal14@gmail.com" });
+    else router.replace("/login");
+  }, [hydrated, session, router, isStudio, signIn]);
   if (!hydrated || !session) return <ShellSkeleton />;
   const fullBleed = path.startsWith("/studio/editor");
+  if (isStudio) {
+    return (
+      <div className="royal flex h-dvh flex-col overflow-hidden">
+        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-line bg-surface px-4 py-2.5">
+          <Link href="/studio" className="flex items-center gap-2"><BrandMark size={26} /><span className="text-[14px] font-semibold">Shalini_IQ</span><span className="text-[13px] text-muted">· Creative Studio</span></Link>
+          <nav className="flex items-center gap-3 text-[13px]"><Link href="/studio" className="text-muted hover:text-ink">All designs</Link><Link href="/account#meta" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">Back to dashboard</Link></nav>
+        </header>
+        <main className="scroll-thin flex-1 overflow-y-auto">{fullBleed ? children : <div className="mx-auto w-full max-w-[1480px] px-4 py-6 sm:px-6">{children}</div>}</main>
+      </div>
+    );
+  }
   return (
     <div className="flex h-dvh overflow-hidden">
       <div className="hidden lg:block"><Sidebar /></div>

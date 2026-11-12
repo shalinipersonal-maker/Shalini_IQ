@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
-import { DemoGeneratedTag, toast } from "@/components/shared";
+import { toast } from "@/components/shared";
 import { Badge, Button, Field, Input, Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger, Modal, Select, Skeleton, Textarea, Tip, cn } from "@/components/ui";
 import type { CopyResult, CopyTone } from "@/lib/ai/copy";
 import { getAIProvider } from "@/lib/ai/provider";
@@ -12,7 +12,7 @@ import { newId, now, useCan, useStore, type Upload } from "@/lib/store";
 import { backgroundSuggestions, brandColors, reviewDesign, variations } from "@/lib/studio/ops";
 import { FONT_UI, PLACEMENTS, TEMPLATES, buildTemplate, button, ellipse, newElId, rect, slot, star, text } from "@/lib/studio/templates";
 import type { CreativeProject, Doc, El } from "@/lib/studio/types";
-import { useScope } from "@/lib/use-scope";
+import { useShopScope } from "@/lib/shop";
 import type { CanvasApi } from "./canvas";
 import { DocPreview } from "./preview";
 
@@ -81,7 +81,7 @@ async function readImage(file: File): Promise<Upload> {
 
 export function StudioEditor({ project }: { project: CreativeProject }) {
   const router = useRouter();
-  const scope = useScope();
+  const scope = useShopScope();
   const canEdit = useCan("creatives.edit");
   const { saveProject, uploads, set, log } = useStore();
   const h = useHistory(project.doc);
@@ -198,13 +198,13 @@ export function StudioEditor({ project }: { project: CreativeProject }) {
   }, [sel, doc, h, duplicate, remove, patch]);
 
   /* ---- AI panel state ---- */
-  const [ai, setAi] = React.useState({ productId: scope.ds.products[0].id, tone: "Direct" as CopyTone, offer: "", seed: 0 });
+  const [ai, setAi] = React.useState({ product: "", price: "", tone: "Direct" as CopyTone, offer: "", seed: 0 });
   const [copy, setCopy] = React.useState<CopyResult | null>(null);
   const [aiBusy, setAiBusy] = React.useState(false);
   const genCopy = async () => {
-    const p = scope.ds.products.find((x) => x.id === ai.productId) ?? scope.ds.products[0];
+    const price = Number(ai.price.replace(/[^\d.]/g, "")) || 0;
     setAiBusy(true);
-    setCopy(await getAIProvider().generateCopy({ product: p.name, category: p.category, price: p.price, mrp: p.mrp, offer: ai.offer, tone: ai.tone, seed: ai.seed }));
+    setCopy(await getAIProvider().generateCopy({ product: ai.product.trim() || "our new collection", category: "Jewellery and ornaments", price, mrp: price, offer: ai.offer, tone: ai.tone, seed: ai.seed }));
     setAi((a) => ({ ...a, seed: a.seed + 1 }));
     setAiBusy(false);
   };
@@ -258,21 +258,21 @@ export function StudioEditor({ project }: { project: CreativeProject }) {
       {tab === "backgrounds" && <>
         <Section title="Background colour"><div className="grid grid-cols-7 gap-1.5">{SWATCHES.map((c) => <button key={c} type="button" aria-label={`Background ${c}`} onClick={() => commit((d) => ({ ...d, background: c }))} className={cn("aspect-square rounded-md border", doc.background.toLowerCase() === c ? "border-accent ring-2 ring-accent/40" : "border-line")} style={{ background: c }} />)}</div>
           <div className="mt-3"><Color label="Custom colour" value={doc.background} onChange={(c) => commit((d) => ({ ...d, background: c }), "bg")} /></div></Section>
-        <Section title="AI background suggestions" action={<DemoGeneratedTag />}><p className="mb-2 text-[11.5px] text-muted">Based on {scope.ds.client.name}&apos;s brand colour. Flat colours only; no imagery is generated.</p>
+        <Section title="Background suggestions"><p className="mb-2 text-[11.5px] text-muted">Based on {scope.ds.client.name}&apos;s brand colour. Flat colours only; no imagery is generated.</p>
           <div className="space-y-1.5">{backgroundSuggestions(scope.ds.client.hue, doc.background).map((s) => <button key={s.label} type="button" onClick={() => commit((d) => ({ ...d, background: s.color }))} className="flex w-full items-center gap-2 rounded-md border border-line p-1.5 text-[12px] hover:border-accent"><span className="size-6 rounded border border-line" style={{ background: s.color }} />{s.label}<span className="ml-auto text-faint">{s.color}</span></button>)}</div></Section>
       </>}
       {tab === "brand" && <>
-        <Section title={`${scope.ds.client.name} brand kit`}><p className="mb-2 text-[11.5px] text-muted">Demo kit derived from the client profile. Click a colour to apply it to the selected layer, or to the background when nothing is selected.</p>
+        <Section title={`${scope.ds.client.name} brand kit`}><p className="mb-2 text-[11.5px] text-muted">Shalz brand colours. Click a colour to apply it to the selected layer, or to the background when nothing is selected.</p>
           <div className="grid grid-cols-3 gap-1.5">{brand.map((b) => <button key={b.label} type="button" onClick={() => applyColor(b.color)} className="rounded-md border border-line p-1 text-[11px] text-muted hover:border-accent"><span className="mb-1 block h-7 rounded" style={{ background: b.color }} />{b.label}</button>)}</div></Section>
         <Section title="Brand assets"><div className="space-y-2">
           <Button className="w-full" onClick={() => add([text("Brand name", scope.ds.client.name, ...centre(doc.width * 0.6, U * 6), doc.width * 0.6, U * 5, brand[1].color, { align: "center" })])}><Type />Add brand name</Button>
           <Button className="w-full" onClick={() => { const [x, y] = centre(U * 16, U * 16); add([ellipse("Logo mark", x, y, U * 16, U * 16, brand[0].color), text("Logo initials", scope.ds.client.name.split(" ").map((w) => w[0]).join(""), x, y + U * 5.2, U * 16, U * 5.4, "#ffffff", { align: "center" })]); }}><Stamp />Add logo mark (placeholder)</Button>
-          <p className="text-[11.5px] text-faint">Upload the client&apos;s real logo under Uploads to use it instead of the placeholder mark.</p>
+          <p className="text-[11.5px] text-faint">Upload the real Shalz logo under Uploads to use it instead of the placeholder mark.</p>
         </div></Section>
       </>}
       {tab === "ai" && <>
-        <Section title="AI ad copy and headlines" action={<DemoGeneratedTag />}><div className="space-y-2">
-          <Select aria-label="Product" value={ai.productId} onChange={(e) => setAi({ ...ai, productId: e.target.value })}>{scope.ds.products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</Select>
+        <Section title="Ad copy and headlines" action={<Badge tone="ai">Auto-written · check before posting</Badge>}><div className="space-y-2">
+          <div className="grid grid-cols-[1fr_88px] gap-2"><Input aria-label="Product name" placeholder="Product, e.g. Ruby pendant" value={ai.product} maxLength={60} onChange={(e) => setAi({ ...ai, product: e.target.value })} /><Input aria-label="Price" placeholder="₹ price" value={ai.price} maxLength={9} onChange={(e) => setAi({ ...ai, price: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-2"><Select aria-label="Tone" value={ai.tone} onChange={(e) => setAi({ ...ai, tone: e.target.value as CopyTone })}>{["Direct", "Premium", "Festive", "Playful"].map((t) => <option key={t}>{t}</option>)}</Select><Input aria-label="Offer" placeholder="Offer, e.g. 20% off" value={ai.offer} maxLength={30} onChange={(e) => setAi({ ...ai, offer: e.target.value })} /></div>
           <Button variant="ai" className="w-full" onClick={genCopy} disabled={aiBusy}><Sparkles />{aiBusy ? "Writing…" : copy ? "Generate more" : "Generate copy"}</Button>
         </div>

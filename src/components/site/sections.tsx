@@ -50,7 +50,7 @@ function HeroVisual() {
           <span className="rounded-md bg-warn-soft px-1.5 py-0.5 text-[10.5px] font-medium text-warn">Illustration</span>
         </div>
         <div className="mt-4 flex h-36 items-end gap-2" aria-hidden>
-          {bars.map((h, i) => <div key={i} className="bar-grow flex-1 rounded-t-md bg-gradient-to-t from-[#11643f] to-[#4cc38a]" style={{ height: `${h}%`, animationDelay: `${i * 70}ms` }} />)}
+          {bars.map((h, i) => <div key={i} className="bar-grow flex-1 rounded-t-md bg-gradient-to-t from-[#a94d61] to-[#e39aa8]" style={{ height: `${h}%`, animationDelay: `${i * 70}ms` }} />)}
         </div>
         <div className="mt-4 grid grid-cols-3 gap-2 text-[11.5px]">
           {[["Website", Globe2], ["Marketplaces", Store], ["Social", Share2]].map(([l, I]) => {
@@ -128,7 +128,7 @@ export function Services() {
         {SERVICE_CARDS.map((s, i) => (
           <Reveal key={s.title} delay={i * 60}>
             <a href="#enquiry" className="gold-frame group flex h-full flex-col rounded-2xl border border-line bg-surface/80 p-6 backdrop-blur transition-all hover:-translate-y-1.5 hover:shadow-card">
-              <span className="flex size-12 items-center justify-center rounded-full border border-line-strong bg-gradient-to-br from-[#4cc38a]/20 to-transparent text-accent transition-transform group-hover:scale-110"><s.icon className="size-5" /></span>
+              <span className="flex size-12 items-center justify-center rounded-full border border-line-strong bg-gradient-to-br from-[#e39aa8]/20 to-transparent text-accent transition-transform group-hover:scale-110"><s.icon className="size-5" /></span>
               <p className="font-royal mt-4 text-[21px]">{s.title}</p>
               <p className="mt-1.5 flex-1 text-[13.5px] text-muted">{s.body}</p>
               <span className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold text-accent">Talk to us<ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" /></span>
@@ -212,7 +212,7 @@ export function TechStack() {
           <div role="tabpanel" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {STACK[k].map((t, i) => (
               <div key={`${k}-${t}`} className="overlay-in gold-frame flex flex-col items-center justify-center gap-2 rounded-xl border border-line bg-surface p-4 text-center" style={{ animationDelay: `${i * 50}ms` }}>
-                <span className="font-royal flex size-12 items-center justify-center rounded-full border border-line-strong bg-gradient-to-br from-[#4cc38a]/25 to-transparent text-[18px] font-bold text-accent">{t.replace(/[^A-Za-z]/g, "").slice(0, 2)}</span>
+                <span className="font-royal flex size-12 items-center justify-center rounded-full border border-line-strong bg-gradient-to-br from-[#e39aa8]/25 to-transparent text-[18px] font-bold text-accent">{t.replace(/[^A-Za-z]/g, "").slice(0, 2)}</span>
                 <span className="text-[13px] font-medium"><Code2 className="mr-1 inline size-3.5 text-faint" />{t}</span>
               </div>
             ))}
@@ -247,11 +247,11 @@ export function SocialSection() {
         </Reveal>
       </div>
       <Reveal className="relative mx-auto aspect-square w-full max-w-[420px]">
-        <div className="absolute inset-[12%] rounded-full bg-[radial-gradient(circle,rgb(76_195_138/0.18),transparent_70%)]" aria-hidden />
+        <div className="absolute inset-[12%] rounded-full bg-[radial-gradient(circle,rgb(196_106_122/0.18),transparent_70%)]" aria-hidden />
         <div className="absolute inset-[4%] rounded-full border border-dashed border-line-strong" aria-hidden />
         <div className="absolute top-1/2 left-1/2 flex h-[46%] w-[26%] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[18px] border-4 border-accent/70 bg-surface p-1.5 shadow-card" aria-hidden>
           <div className="mx-auto h-1 w-6 rounded-full bg-line-strong" />
-          <div className="mt-2 h-1/3 rounded-md bg-gradient-to-br from-[#4cc38a] to-[#11643f]" />
+          <div className="mt-2 h-1/3 rounded-md bg-gradient-to-br from-[#e39aa8] to-[#a94d61]" />
           <div className="mt-1.5 h-1.5 w-3/4 rounded bg-line-strong" /><div className="mt-1 h-1.5 w-1/2 rounded bg-line" />
           <div className="mt-auto flex justify-around pb-1"><span className="size-2 rounded-full bg-neg" /><span className="size-2 rounded-full bg-accent" /><span className="size-2 rounded-full bg-pos" /></div>
         </div>

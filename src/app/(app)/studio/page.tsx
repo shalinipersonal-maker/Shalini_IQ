@@ -9,12 +9,12 @@ import { timeAgo } from "@/lib/format";
 import { newId, now, useCan, useStore } from "@/lib/store";
 import { PLACEMENTS, TEMPLATES, TEMPLATE_CATEGORIES, buildTemplate, placementOf, type Template } from "@/lib/studio/templates";
 import type { CreativeProject, Doc } from "@/lib/studio/types";
-import { useScope } from "@/lib/use-scope";
+import { useShopScope } from "@/lib/shop";
 
 const fitWidth = (doc: Doc, box = 200, maxH = 190) => Math.min(box, (maxH * doc.width) / doc.height);
 
 function Library() {
-  const scope = useScope();
+  const scope = useShopScope();
   const router = useRouter();
   const path = usePathname();
   const params = useSearchParams();

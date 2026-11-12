@@ -1,0 +1,30 @@
+name: IQ watchdog
+
+# Every 15 minutes: asks the live site to check all its connections (it repairs Telegram itself and
+# tells Shalini on Telegram when something breaks or recovers). If the website itself does not answer,
+# this job messages Shalini on Telegram directly — so she hears about it even when the site is down.
+# Needs four repository secrets: SITE_URL, CRON_SECRET, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check the live site
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          code=$(curl -s -o /tmp/health.json -w "%{http_code}" --max-time 60 -H "Authorization: Bearer $CRON_SECRET" "$SITE_URL/api/cron/health" || echo 000)
+          echo "status $code"; cat /tmp/health.json 2>/dev/null || true
+          if [ "$code" != "200" ] && [ "$code" != "207" ]; then
+            curl -s --max-time 20 "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+              --data-urlencode "text=⚠️ Shalini_IQ website is not answering (status ${code}). Check Vercel → shalini-iq → Deployments." > /dev/null
+          fi

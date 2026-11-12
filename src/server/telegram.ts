@@ -49,6 +49,22 @@ export async function setWebhook(origin: string): Promise<{ ok: boolean; bot?: s
   return res?.ok ? { ok: true, bot: me.result?.username } : { ok: false, error: res?.description ?? "Telegram refused the webhook" };
 }
 
+/** Makes sure Telegram is delivering to this site's fixed address; re-registers it if not (self-repair). */
+export async function repairWebhook(siteUrl: string): Promise<{ ok: boolean; detail: string }> {
+  const want = `${siteUrl}/api/telegram/webhook`;
+  const info = await fetch(`${API()}/getWebhookInfo`, { cache: "no-store", signal: AbortSignal.timeout(10000) }).then((r) => r.json()).catch(() => null) as
+    { ok?: boolean; description?: string; result?: { url?: string; last_error_date?: number; last_error_message?: string; pending_update_count?: number } } | null;
+  if (!info?.ok) return { ok: false, detail: `Telegram not reachable or token refused${info?.description ? ` (${info.description})` : ""}` };
+  const r = info.result ?? {};
+  const recentError = r.last_error_date && Date.now() / 1000 - r.last_error_date < 30 * 60;
+  if (r.url !== want || recentError) {
+    const set = await setWebhook(siteUrl);
+    if (!set.ok) return { ok: false, detail: set.error ?? "could not re-register the webhook" };
+    return { ok: true, detail: r.url !== want ? "webhook was pointing elsewhere — repaired" : `recovered after: ${r.last_error_message ?? "delivery error"}` };
+  }
+  return { ok: true, detail: `listening (${r.pending_update_count ?? 0} waiting)` };
+}
+
 /* ---------- Reports ---------- */
 function trend(now: number, before: number): string {
   if (!before) return "";
@@ -88,6 +104,7 @@ const HELP = [
   "/sales — sales for the last 30 days",
   "/posts — how your posts are doing",
   "/ads — boosts and spend",
+  "/status — is everything connected and working?",
   "You can also just type: <i>sales</i>, <i>leads</i>, <i>posts</i>, <i>ads</i>.",
 ].join("\n");
 
@@ -105,7 +122,12 @@ export async function handleMessage(chatId: string, text: string): Promise<void>
   const has = (...w: string[]) => w.some((x) => new RegExp(`(^|[^a-z])${x.replace(/[/]/g, "\\/")}`).test(t));
 
   if (has("/start", "/help", "help") || /^(hi|hello|hey|vanakkam)\b/.test(t)) return void (await sendTo(chatId, HELP));
-  if (has("/today", "today", "report", "summary", "update", "status")) return void (await sendTo(chatId, dailyReport(o, "Here's where things stand")));
+  if (has("/status", "health", "working", "online", "offline", "down")) {
+    const { runHealth } = await import("./health");
+    const checks = await runHealth();
+    return void (await sendTo(chatId, `<b>System check</b>\n${checks.map((c) => `${c.ok ? "✅" : "⚠️"} ${esc(c.label)} — ${esc(c.detail)}`).join("\n")}`));
+  }
+  if (has("/today", "today", "report", "summary", "update")) return void (await sendTo(chatId, dailyReport(o, "Here's where things stand")));
   if (has("/leads", "lead", "enquir", "inquir", "customer")) {
     const rows = o.leads.latest.map((l) => `• <b>${esc(l.name)}</b> — ${esc(l.interest)}${l.phone ? ` · <a href="tel:${esc(l.phone)}">${esc(l.phone)}</a>` : ""}`);
     return void (await sendTo(chatId, rows.length ? `<b>Latest enquiries</b> (${o.leads.week} this week)\n${rows.join("\n")}` : "No enquiries yet."));

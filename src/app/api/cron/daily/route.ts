@@ -1,4 +1,5 @@
 import { flipkartConfigured, fetchOrders } from "@/server/flipkart";
+import { watch } from "@/server/health";
 import { listPosts } from "@/server/meta";
 import { overview, ownerAccountId } from "@/server/overview";
 import { replaceAutoSync } from "@/server/sales";
@@ -17,6 +18,7 @@ export async function GET(request: Request) {
     try { const { rows } = await fetchOrders(30); await replaceAutoSync(acc, "Flipkart", "Flipkart last 30 days", rows); synced = `\n🔄 Flipkart orders refreshed (${rows.length} lines).`; }
     catch (e) { synced = `\n⚠️ Flipkart refresh failed: ${e instanceof Error ? e.message : "error"}`; }
   }
+  await watch().catch(() => null);
   await listPosts(acc, true).catch(() => null);
   await notify(dailyReport(await overview(acc)) + synced);
   return Response.json({ ok: true });

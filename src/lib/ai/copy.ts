@@ -13,7 +13,9 @@ export function generateCopy(req: CopyRequest): CopyResult {
   const p = short(req.product);
   const off = req.mrp > req.price ? Math.round(((req.mrp - req.price) / req.mrp) * 100) : 0;
   const offer = req.offer?.trim() || (off >= 5 ? `${off}% off` : "");
-  const price = `₹${req.price.toLocaleString("en-IN")}`;
+  // No price given → lines that would show a price are left out (never "₹0").
+  const price = req.price > 0 ? `₹${req.price.toLocaleString("en-IN")}` : "\u0000";
+  const priced = (xs: string[]) => xs.filter((x) => !x.includes("\u0000"));
   const cat = req.category.toLowerCase();
   const H: Record<CopyTone, string[]> = {
     Direct: [`${p}. Now ${price}.`, offer ? `${offer} on ${p}` : `${p}, delivered fast`, `The ${cat} upgrade you planned`, `${p} — in stock today`, `Buy ${p} at ${price}`, `Made for everyday use`],
@@ -29,8 +31,8 @@ export function generateCopy(req: CopyRequest): CopyResult {
   };
   const n = req.seed ?? 0;
   return {
-    headlines: rot(H[req.tone], n),
-    primaryTexts: rot(T[req.tone], n),
+    headlines: rot(priced(H[req.tone]), n),
+    primaryTexts: rot(priced(T[req.tone]), n),
     ctas: rot(["Shop now", "Buy now", "View offer", "Order today"], n),
     concepts: rot([
       { title: "Hero on colour", idea: `${p} centred on a flat brand-colour field, price badge top right, single-line headline below.` },

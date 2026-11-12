@@ -75,6 +75,7 @@ export function LiveAccount() {
                 <a href="#overview" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">Overview</a>
                 <a href="#alerts" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">Enquiries</a>
                 <a href="#meta" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">Post</a>
+                <a href="/studio" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">Creative Studio</a>
                 <a href="#boost" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">Boost</a>
                 <a href="#sales" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">Sales</a>
                 <a href="#visibility" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">SEO · AEO</a>
@@ -289,6 +290,12 @@ function MetaSection({ result }: { result: { meta: string | null; pages: string 
     if (!f) return;
     try { setImage({ ...(await toJpeg(f)), name: f.name }); setNote(""); } catch { setNote("That file could not be read as an image."); }
   };
+  const fromStudio = async () => {
+    let saved: { url: string; name: string } | null = null;
+    try { saved = JSON.parse(sessionStorage.getItem("entraiq-live-creative") ?? "null"); } catch { /* storage blocked */ }
+    if (!saved?.url) { setNote("No Studio design waiting. Open Creative Studio, make a design, then Export → Post to Facebook / Instagram."); return; }
+    setImage({ ...(await toJpeg(saved.url)), name: saved.name }); setNote("");
+  };
   const ratio = image ? image.w / image.h : 1;
   const igOutOfRange = image && (ratio < 0.8 || ratio > 1.91);
   const igChosen = targets?.some((t) => t.kind === "instagram" && chosen.includes(t.id));
@@ -345,6 +352,8 @@ function MetaSection({ result }: { result: { meta: string | null; pages: string 
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
                 <label className="inline-flex"><input type="file" accept="image/*" className="sr-only" onChange={(e) => pickFile(e.target.files?.[0])} /><span className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-line px-2.5 text-[12.5px] font-medium hover:bg-raised"><FileUp className="size-4" />Choose image</span></label>
+                <Button size="sm" onClick={fromStudio}>Use Studio design</Button>
+                <a href="/studio"><Button size="sm" variant="ghost">Open Creative Studio</Button></a>
               </div>
               {image && <p className="mt-1 text-[12px] text-faint">{image.name} · {image.w} × {image.h}px</p>}
             </div>
