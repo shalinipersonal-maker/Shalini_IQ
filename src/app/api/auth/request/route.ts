@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { newId, sql } from "@/server/db";
 import { fail, handle, json } from "@/server/live-api";
-import { buttonEmail, mailConfigured, sendMail } from "@/server/mail";
+import { buttonEmail, lastMailError, mailConfigured, mailMethod, sendMail } from "@/server/mail";
 import { allow } from "@/server/rate-limit";
 import { hashToken, randomToken } from "@/server/session";
 import { LIVE_APP_NAME } from "@/config/live";
@@ -18,7 +18,7 @@ const schema = z.object({
 export async function POST(request: Request) {
   return handle(async () => {
     if (!allow(request, 0.1, 4)) return fail("Too many attempts. Please wait a minute.", 429);
-    if (!mailConfigured()) return fail("Email sending is not set up yet (RESEND_API_KEY / MAIL_FROM).", 503);
+    if (!mailConfigured()) return fail("Email sending is not set up yet (GMAIL_USER + GMAIL_APP_PASSWORD).", 503);
     const parsed = schema.safeParse(await request.json().catch(() => ({})));
     if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Check the form", 422);
     const email = parsed.data.email.toLowerCase();
@@ -43,7 +43,12 @@ export async function POST(request: Request) {
     const sent = await sendMail(email, `Your ${LIVE_APP_NAME} sign-in link`,
       `Sign in to ${LIVE_APP_NAME}: ${link}\nThis link works once and expires in 15 minutes.`,
       buttonEmail(`Sign in to ${LIVE_APP_NAME}`, "Tap the button to sign in. The link works once and expires in 15 minutes.", "Sign in", link));
-    if (!sent) return fail("We couldn't send the email. Check the email settings and try again.", 502);
+    if (!sent) {
+      const hint = mailMethod() === "Resend" && /testing emails|verify a domain|own email/i.test(lastMailError)
+        ? " Resend can only email its own account until a domain is verified — set GMAIL_USER and GMAIL_APP_PASSWORD in Vercel instead."
+        : "";
+      return fail(`We couldn't send the email${lastMailError ? `: ${lastMailError}` : ""}.${hint}`, 502);
+    }
     return json({ ok: true });
   });
 }

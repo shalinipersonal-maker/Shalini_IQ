@@ -2,7 +2,7 @@ import "server-only";
 import { SITE } from "@/config/site";
 import { open as unseal } from "./connectors/token-vault";
 import { sql } from "./db";
-import { mailConfigured } from "./mail";
+import { mailConfigured, mailMethod } from "./mail";
 import { graph, listPosts } from "./meta";
 import { ownerAccountId } from "./overview";
 import { newOrders, shopInfo, shopifyConfigured } from "./shopify";
@@ -22,7 +22,7 @@ export async function runHealth(): Promise<Check[]> {
   try { await sql("SELECT 1"); add("db", "Database", true, "reachable"); }
   catch (e) { add("db", "Database", false, e instanceof Error ? e.message : "unreachable"); return checks; }
 
-  add("email", "Email sending", mailConfigured(), mailConfigured() ? "configured" : "RESEND_API_KEY / MAIL_FROM missing");
+  add("email", "Email sending", mailConfigured(), mailConfigured() ? `configured (${mailMethod()})` : "GMAIL_USER / GMAIL_APP_PASSWORD missing");
 
   if (telegramConfigured()) {
     const r = await repairWebhook(SITE.url);
