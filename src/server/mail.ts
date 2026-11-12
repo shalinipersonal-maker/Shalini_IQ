@@ -26,6 +26,6 @@ export function buttonEmail(heading: string, body: string, button: string, href:
   return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#14213d">
 <h2 style="font-size:20px;margin:0 0 12px">${esc(heading)}</h2>
 <p style="font-size:15px;line-height:1.5;margin:0 0 20px">${esc(body)}</p>
-<a href="${esc(href)}" style="display:inline-block;background:#2b2b2e;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 20px;border-radius:8px">${esc(button)}</a>
+<a href="${esc(href)}" style="display:inline-block;background:#3b0f1e;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 20px;border-radius:8px">${esc(button)}</a>
 <p style="font-size:12px;color:#6b7280;margin:24px 0 0">If you didn't ask for this, you can ignore this email. ${LIVE_APP_NAME}.</p></div>`;
 }

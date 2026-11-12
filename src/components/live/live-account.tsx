@@ -7,6 +7,7 @@ import { BarList, TrendChart } from "@/components/charts";
 import { BrandMark } from "@/components/shell/sidebar";
 import { Badge, Button, Card, CardHeader, EmptyState, Field, Input, Select, Textarea, cn } from "@/components/ui";
 import { inr } from "@/lib/format";
+import { ThemeToggle } from "@/components/site/theme-toggle";
 import { BoostCard, OverviewCard, TelegramCard, VisibilityCard } from "./control";
 import { FIELDS, guessColumns, mapRows, parseDelimited, type Field as SalesField, type MappedRow } from "@/lib/live/csv";
 import { LIVE_APP_NAME } from "@/config/live";
@@ -24,7 +25,7 @@ async function api<T = object>(url: string, init?: RequestInit): Promise<ApiBody
 const when = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "");
 
 interface Account { id: string; email: string; name: string | null; phone: string | null }
-interface Status { database: boolean; email: boolean; alertEmail: boolean; sessionSecret: boolean; vault: boolean; meta: boolean; allowList: boolean; threads: boolean; amazon: boolean; flipkart: boolean; telegram: boolean; telegramChat: boolean; cron: boolean }
+interface Status { database: boolean; email: boolean; alertEmail: boolean; sessionSecret: boolean; vault: boolean; meta: boolean; allowList: boolean; threads: boolean; amazon: boolean; flipkart: boolean; shopify: boolean; telegram: boolean; telegramChat: boolean; cron: boolean }
 
 export function LiveAccount() {
   const params = useSearchParams();
@@ -48,6 +49,7 @@ export function LiveAccount() {
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
           <Link href="/" className="flex items-center gap-2" aria-label="Back to the website"><BrandMark size={28} /><span className="text-[14.5px] font-semibold">{LIVE_APP_NAME}</span><Badge tone="pos" dot>Live test</Badge></Link>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
                         {account && <Button variant="ghost" size="sm" onClick={logout}><LogOut />Sign out</Button>}
           </div>
         </div>
@@ -112,6 +114,7 @@ function StatusCard({ status }: { status: Status | null }) {
     { ok: status?.threads, label: "Threads", what: "THREADS_APP_ID, THREADS_APP_SECRET" },
     { ok: status?.amazon, label: "Amazon sales", what: "AMAZON_SP_CLIENT_ID, AMAZON_SP_CLIENT_SECRET, AMAZON_SP_REFRESH_TOKEN" },
     { ok: status?.flipkart, label: "Flipkart orders", what: "FLIPKART_APP_ID, FLIPKART_APP_SECRET" },
+    { ok: status?.shopify, label: "Shopify store", what: "SHOPIFY_STORE_DOMAIN, SHOPIFY_CLIENT_ID, SHOPIFY_CLIENT_SECRET" },
   ];
   if (status && done === items.length) {
     return (
@@ -290,6 +293,18 @@ function MetaSection({ result }: { result: { meta: string | null; pages: string 
     if (!f) return;
     try { setImage({ ...(await toJpeg(f)), name: f.name }); setNote(""); } catch { setNote("That file could not be read as an image."); }
   };
+  const [products, setProducts] = React.useState<{ id: string; title: string; url: string; price: string; image: string | null }[]>([]);
+  const [productId, setProductId] = React.useState("");
+  React.useEffect(() => {
+    api<{ products: { id: string; title: string; url: string; price: string; image: string | null }[] }>("/api/live/shopify/products").then((r) => { if (r.ok) setProducts(r.products); });
+  }, []);
+  const product = products.find((p) => p.id === productId);
+  const addProductLink = () => { if (product) setCaption((c) => `${c.trim()}${c.trim() ? "\n\n" : ""}🛒 ${product.title}${product.price ? ` — ₹${Number(product.price).toLocaleString("en-IN")}` : ""}\nBuy now: ${product.url}`); };
+  const useProductPhoto = async () => {
+    if (!product?.image) return setNote("This product has no photo in Shopify.");
+    try { setImage({ ...(await toJpeg(`/api/live/shopify/image?src=${encodeURIComponent(product.image)}`)), name: product.title }); setNote(""); }
+    catch { setNote("Could not load the product photo."); }
+  };
   const fromStudio = async () => {
     let saved: { url: string; name: string } | null = null;
     try { saved = JSON.parse(sessionStorage.getItem("entraiq-live-creative") ?? "null"); } catch { /* storage blocked */ }
@@ -358,6 +373,13 @@ function MetaSection({ result }: { result: { meta: string | null; pages: string 
               {image && <p className="mt-1 text-[12px] text-faint">{image.name} · {image.w} × {image.h}px</p>}
             </div>
             <div className="space-y-3">
+              {products.length > 0 && (
+                <div className="flex flex-wrap items-end gap-2 rounded-lg border border-line p-3">
+                  <Field label="Shopify product" className="min-w-[220px] flex-1"><Select value={productId} onChange={(e) => setProductId(e.target.value)}><option value="">— choose a product —</option>{products.map((p) => <option key={p.id} value={p.id}>{p.title}{p.price ? ` · ₹${p.price}` : ""}</option>)}</Select></Field>
+                  <Button size="sm" disabled={!product} onClick={addProductLink}>Add “Buy now” link</Button>
+                  <Button size="sm" disabled={!product?.image} onClick={useProductPhoto}>Use product photo</Button>
+                </div>
+              )}
               <Field label="Caption" hint={`${caption.length} / 2,200`}><Textarea rows={5} value={caption} maxLength={2200} onChange={(e) => setCaption(e.target.value)} placeholder="Write the post text, with hashtags if you like." /></Field>
               {igChosen && igOutOfRange && <p className="text-[12.5px] text-warn">Instagram only accepts shapes from 4:5 (portrait) to 1.91:1 (landscape). This image is outside that, so Instagram may refuse it. Square works everywhere.</p>}
               <p className="text-[12.5px] text-muted">This posts publicly to the ticked accounts, straight away. You can delete a post from Facebook or Instagram afterwards.</p>
@@ -394,7 +416,7 @@ function MetaSection({ result }: { result: { meta: string | null; pages: string 
 }
 
 /* ---------- 3 · Sales reports ---------- */
-const SOURCES = ["Amazon", "Flipkart", "Meesho", "Myntra", "Other"] as const;
+const SOURCES = ["Amazon", "Flipkart", "Shopify", "Meesho", "Myntra", "Other"] as const;
 type Source = (typeof SOURCES)[number];
 interface Summary {
   totals: { revenue: number; units: number; orders: number; first: string | null; last: string | null };
@@ -414,9 +436,9 @@ function SalesSection() {
 
   const load = React.useCallback(() => { api<Summary>("/api/live/sales").then((r) => r.ok && setSummary(r)); }, []);
   React.useEffect(load, [load]);
-  const [conn, setConn] = React.useState<{ amazon: boolean; flipkart: boolean }>({ amazon: false, flipkart: false });
-  React.useEffect(() => { api<{ amazon: boolean; flipkart: boolean }>("/api/live/status").then((r) => r.ok && setConn({ amazon: r.amazon, flipkart: r.flipkart })); }, []);
-  const [syncing, setSyncing] = React.useState<"" | "Amazon" | "Flipkart">("");
+  const [conn, setConn] = React.useState<{ amazon: boolean; flipkart: boolean; shopify: boolean }>({ amazon: false, flipkart: false, shopify: false });
+  React.useEffect(() => { api<{ amazon: boolean; flipkart: boolean; shopify: boolean }>("/api/live/status").then((r) => r.ok && setConn({ amazon: r.amazon, flipkart: r.flipkart, shopify: r.shopify })); }, []);
+  const [syncing, setSyncing] = React.useState<"" | "Amazon" | "Flipkart" | "Shopify">("");
   const [syncNote, setSyncNote] = React.useState("");
 
   const syncFlipkart = async () => {
@@ -424,6 +446,13 @@ function SalesSection() {
     const r = await api<{ rows: number; partial: boolean }>("/api/live/flipkart", { method: "POST" });
     setSyncing("");
     setSyncNote(r.ok ? `Flipkart: ${r.rows.toLocaleString("en-IN")} order lines from the last 30 days${r.partial ? " (more exist — press Sync again later)" : ""}.` : (r.error ?? "Flipkart sync failed"));
+    if (r.ok) load();
+  };
+  const syncShopify = async () => {
+    setSyncing("Shopify"); setSyncNote("Reading your Shopify orders…");
+    const r = await api<{ rows: number }>("/api/live/shopify", { method: "POST" });
+    setSyncing("");
+    setSyncNote(r.ok ? `Shopify: ${r.rows.toLocaleString("en-IN")} order lines from the last 30 days.` : (r.error ?? "Shopify sync failed"));
     if (r.ok) load();
   };
   const syncAmazon = async () => {
@@ -477,6 +506,7 @@ function SalesSection() {
           <span className="mr-auto font-medium">Automatic sync (last 30 days)</span>
           <Button size="sm" variant={conn.amazon ? "primary" : "secondary"} disabled={!conn.amazon || !!syncing} onClick={syncAmazon}><RefreshCw />{syncing === "Amazon" ? "Syncing Amazon…" : conn.amazon ? "Sync Amazon" : "Amazon not connected"}</Button>
           <Button size="sm" variant={conn.flipkart ? "primary" : "secondary"} disabled={!conn.flipkart || !!syncing} onClick={syncFlipkart}><RefreshCw />{syncing === "Flipkart" ? "Syncing Flipkart…" : conn.flipkart ? "Sync Flipkart" : "Flipkart not connected"}</Button>
+          <Button size="sm" variant={conn.shopify ? "primary" : "secondary"} disabled={!conn.shopify || !!syncing} onClick={syncShopify}><RefreshCw />{syncing === "Shopify" ? "Syncing Shopify…" : conn.shopify ? "Sync Shopify" : "Shopify not connected"}</Button>
           {syncNote && <p className="w-full text-muted">{syncNote}</p>}
         </div>
         <div className="rounded-lg border border-dashed border-line bg-raised p-4 text-[13px]">

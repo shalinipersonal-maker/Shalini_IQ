@@ -5,6 +5,7 @@ import { sql } from "./db";
 import { mailConfigured } from "./mail";
 import { graph } from "./meta";
 import { ownerAccountId } from "./overview";
+import { newOrders, shopInfo, shopifyConfigured } from "./shopify";
 import { notify, repairWebhook, telegramConfigured } from "./telegram";
 
 /**
@@ -26,6 +27,11 @@ export async function runHealth(): Promise<Check[]> {
   if (telegramConfigured()) {
     const r = await repairWebhook(SITE.url);
     add("telegram", "Telegram bot", r.ok, r.detail);
+  }
+
+  if (shopifyConfigured()) {
+    try { const s = await shopInfo(); add("shopify", `Shopify · ${s.name}`, true, "connected"); }
+    catch (e) { add("shopify", "Shopify", false, e instanceof Error ? e.message : "not reachable"); }
   }
 
   const acc = await ownerAccountId();
@@ -68,6 +74,20 @@ export async function watch(): Promise<{ checks: Check[]; changed: number }> {
       ...broke.map((c) => `⚠️ <b>${esc(c.label)}</b>: ${esc(c.detail)}`),
       ...fixed.map((c) => `✅ <b>${esc(c.label)}</b> is working again.`),
     ].join("\n"));
+  }
+  // New Shopify orders since the last check → one Telegram message each.
+  if (shopifyConfigured() && checks.find((c) => c.key === "shopify")?.ok) {
+    try {
+      const last = (await sql(`SELECT v FROM live_kv WHERE account_id = $1 AND k = 'shopify_last'`, [acc]))[0]?.v;
+      const since = last ?? new Date().toISOString();
+      const fresh = last ? await newOrders(since) : [];
+      for (const o of fresh.slice(0, 10).reverse()) {
+        const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
+        await notify(`🛒 <b>New Shopify order ${esc(o.name)}</b> — ${o.currency === "INR" ? "₹" : `${o.currency} `}${Number(o.total).toLocaleString("en-IN")}${o.customer ? ` · ${esc(o.customer)}` : ""}\n${esc(o.items)}`);
+      }
+      const newest = fresh[0]?.createdAt ?? since;
+      await sql(`INSERT INTO live_kv (account_id, k, v) VALUES ($1, 'shopify_last', $2) ON CONFLICT (account_id, k) DO UPDATE SET v = EXCLUDED.v`, [acc, newest]);
+    } catch { /* try again next run */ }
   }
   await sql(`INSERT INTO live_kv (account_id, k, v) VALUES ($1, 'health', $2) ON CONFLICT (account_id, k) DO UPDATE SET v = EXCLUDED.v`, [acc, JSON.stringify(now)]).catch(() => null);
   return { checks, changed: broke.length + fixed.length };

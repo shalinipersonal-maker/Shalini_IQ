@@ -2,7 +2,7 @@ import "server-only";
 import type { MappedRow } from "@/lib/live/csv";
 import { newId, sql } from "./db";
 
-export type SalesSource = "Amazon" | "Flipkart" | "Meesho" | "Myntra" | "Other";
+export type SalesSource = "Amazon" | "Flipkart" | "Shopify" | "Meesho" | "Myntra" | "Other";
 export const AUTO_PREFIX = "Auto-sync";
 
 /** Saves mapped sales rows as one upload. Returns the upload id. */

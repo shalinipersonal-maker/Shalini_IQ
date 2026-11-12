@@ -17,6 +17,7 @@ export function GET() {
     threads: set("THREADS_APP_ID") && set("THREADS_APP_SECRET"),
     amazon: set("AMAZON_SP_CLIENT_ID") && set("AMAZON_SP_CLIENT_SECRET") && set("AMAZON_SP_REFRESH_TOKEN"),
     flipkart: set("FLIPKART_APP_ID") && set("FLIPKART_APP_SECRET"),
+    shopify: set("SHOPIFY_STORE_DOMAIN") && (set("SHOPIFY_ADMIN_TOKEN") || (set("SHOPIFY_CLIENT_ID") && set("SHOPIFY_CLIENT_SECRET"))),
     telegram: set("TELEGRAM_BOT_TOKEN"),
     telegramChat: set("TELEGRAM_CHAT_ID"),
     cron: set("CRON_SECRET"),

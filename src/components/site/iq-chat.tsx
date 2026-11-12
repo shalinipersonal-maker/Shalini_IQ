@@ -14,7 +14,7 @@ const save = (v: Saved) => { try { localStorage.setItem(KEY, JSON.stringify({ ..
 /** IQ's face: our own mark — two letters in a gradient disc with a small "live" dot. */
 export function IQAvatar({ size = 36 }: { size?: number }) {
   return (
-    <span className="font-royal relative inline-flex shrink-0 items-center justify-center rounded-full bg-[#2b2b2e] font-bold text-[#e39aa8] shadow-sm ring-1 ring-[#e39aa8]/60" style={{ width: size, height: size, fontSize: size * 0.38 }} aria-hidden>
+    <span className="font-royal relative inline-flex shrink-0 items-center justify-center rounded-full bg-[#3b0f1e] font-bold text-[#f2a7b8] shadow-sm ring-1 ring-[#f2a7b8]/60" style={{ width: size, height: size, fontSize: size * 0.38 }} aria-hidden>
       IQ<span className="absolute right-0 bottom-0 rounded-full border-2 border-surface bg-pos" style={{ width: size * 0.28, height: size * 0.28 }} />
     </span>
   );

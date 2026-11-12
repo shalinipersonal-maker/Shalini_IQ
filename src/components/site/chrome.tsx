@@ -3,6 +3,7 @@ import { ArrowUpRight, ChevronDown, ChevronRight, Mail, MapPin, Menu, MessageCir
 import Link from "next/link";
 import * as React from "react";
 import { BrandMark } from "@/components/shell/sidebar";
+import { ThemeToggle } from "./theme-toggle";
 import { Button, cn } from "@/components/ui";
 import { SITE, socialLinks, telHref, waHref } from "@/config/site";
 import { FEE_CONFIGS } from "@/lib/site/fees";
@@ -66,7 +67,8 @@ export function SiteHeader() {
           {NAV.map(([href, label]) => <a key={href} href={href} className="text-[13.5px] font-medium text-muted hover:text-ink">{label}</a>)}
         </nav>
         <div className="ml-auto flex items-center gap-1.5">
-          <Link href="/login" className="hidden h-9 items-center rounded-md px-3 text-[13px] font-medium text-muted hover:bg-raised hover:text-ink md:inline-flex">Platform login</Link>
+          <ThemeToggle />
+          <Link href="/account" className="hidden h-9 items-center rounded-md px-3 text-[13px] font-medium text-muted hover:bg-raised hover:text-ink md:inline-flex">Dashboard</Link>
           <a href="#enquiry" className="pulse-ring hidden h-9 items-center rounded-full btn-main px-4 text-[13px] font-semibold text-accent-ink hover:brightness-110 sm:inline-flex">Get free consultation</a>
           <Button variant="ghost" size="icon" className="lg:hidden" aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</Button>
         </div>
@@ -80,7 +82,7 @@ export function SiteHeader() {
               <ul className="pb-2 pl-3">{g.ids.map((id) => <li key={id}><a href={calcHref(id)} className="block px-2 py-1.5 text-[14px] text-muted">{FEE_CONFIGS[id].name}</a></li>)}</ul></details>
           ))}
           {NAV.map(([href, label]) => <a key={href} href={href} className="block rounded-md px-2 py-2.5 text-[15px] font-medium">{label}</a>)}
-          <Link href="/login" className="block rounded-md px-2 py-2.5 text-[15px] font-medium">Platform login</Link>
+          <Link href="/account" className="block rounded-md px-2 py-2.5 text-[15px] font-medium">Dashboard</Link>
           <a href="#enquiry" className="mt-2 block rounded-md bg-accent px-2 py-2.5 text-center text-[15px] font-semibold text-accent-ink">Get free consultation</a>
         </nav>
       )}
@@ -116,7 +118,7 @@ export function SiteFooter() {
           <FL href="#platform">What it does</FL>
           <FL href="#pricing">Pricing</FL>
           <FL href="/signup">Start a workspace</FL>
-          <FL href="/login">Platform login</FL>
+          <FL href="/account">Platform login</FL>
         </FootCol>
         <FootCol title="Contact">
           {SITE.contact.phones.map((p) => <li key={p}><a href={telHref(p)} className="inline-flex items-center gap-2 hover:text-ink"><Phone className="size-4 text-faint" />{p}</a></li>)}

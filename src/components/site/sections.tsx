@@ -40,35 +40,6 @@ function RotatingWord() {
   return <span className="word-rotate inline-block min-w-[6ch]"><span key={i} className="text-gradient">{ROTATE[i]}</span></span>;
 }
 
-function HeroVisual() {
-  const bars = [38, 52, 46, 64, 58, 76, 70, 88, 82, 96];
-  return (
-    <div className="relative mx-auto w-full max-w-lg">
-      <div className="float-y gold-frame rounded-2xl border border-line bg-surface/90 p-5 shadow-card backdrop-blur">
-        <div className="flex items-center justify-between">
-          <p className="text-[13px] font-semibold">Brand growth · last 10 weeks</p>
-          <span className="rounded-md bg-warn-soft px-1.5 py-0.5 text-[10.5px] font-medium text-warn">Illustration</span>
-        </div>
-        <div className="mt-4 flex h-36 items-end gap-2" aria-hidden>
-          {bars.map((h, i) => <div key={i} className="bar-grow flex-1 rounded-t-md bg-gradient-to-t from-[#a94d61] to-[#e39aa8]" style={{ height: `${h}%`, animationDelay: `${i * 70}ms` }} />)}
-        </div>
-        <div className="mt-4 grid grid-cols-3 gap-2 text-[11.5px]">
-          {[["Website", Globe2], ["Marketplaces", Store], ["Social", Share2]].map(([l, I]) => {
-            const Icon = I as typeof Globe2;
-            return <div key={l as string} className="flex items-center gap-1.5 rounded-lg bg-raised px-2 py-1.5"><Icon className="size-3.5 text-accent" />{l as string}</div>;
-          })}
-        </div>
-      </div>
-      <div className="float-y-slow absolute -top-5 -right-2 hidden rounded-xl border border-line bg-surface px-3 py-2 text-[12px] shadow-card sm:block">
-        <p className="flex items-center gap-1.5 font-medium"><ScanSearch className="size-3.5 text-pos" />Listing check: 100/100</p>
-      </div>
-      <div className="float-y absolute -bottom-6 -left-3 hidden rounded-xl border border-line bg-surface px-3 py-2 text-[12px] shadow-card sm:block" style={{ animationDelay: "1.5s" }}>
-        <p className="flex items-center gap-1.5 font-medium"><Calculator className="size-3.5 text-accent" />Fees calculated in 1 tap</p>
-      </div>
-    </div>
-  );
-}
-
 export function Hero() {
   return (
     <section className="relative overflow-hidden">
@@ -76,20 +47,22 @@ export function Hero() {
       <div className="blob top-[-120px] left-[-80px] size-[380px] bg-accent" aria-hidden />
       <div className="blob top-[60px] right-[-120px] size-[420px] bg-ai" style={{ animationDelay: "-6s" }} aria-hidden />
       <div className="blob bottom-[-160px] left-[35%] size-[360px] bg-[var(--s-meta)]" style={{ animationDelay: "-12s" }} aria-hidden />
-      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pt-10 pb-20 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:pt-16">
-        <div className="min-w-0">
+      <div className="relative mx-auto max-w-4xl px-4 pt-12 pb-20 text-center sm:px-6 lg:pt-20">
+        <div className="mx-auto min-w-0">
           <p className="overlay-in inline-flex items-center gap-2 rounded-full border border-line bg-surface/80 px-3 py-1 text-[12px] text-muted backdrop-blur"><span className="size-1.5 rounded-full bg-pos" />Websites · Marketing · Marketplace platform</p>
-          <h1 className="mt-6 text-[46px] leading-[1.02] text-balance sm:text-[72px]">
+          <h1 className="mt-6 text-[48px] leading-[1.02] text-balance sm:text-[80px]">
             Build your brand.<br />Sell more on <RotatingWord />
           </h1>
-          <p className="mt-5 max-w-xl text-[16.5px] text-muted">We build fast e-commerce websites, runs your SEO and social media, and gives agencies Shalini_IQ — one screen for every seller on every marketplace.</p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <p className="mx-auto mt-5 max-w-2xl text-[17px] text-muted">We build fast e-commerce websites, run your SEO and social media, and give you Shalini_IQ — one screen for every sale, post and enquiry.</p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             <a href="#enquiry" className="group inline-flex h-12 items-center gap-2 rounded-full btn-main px-6 text-[14.5px] font-semibold text-accent-ink shadow-card hover:brightness-110">Get free consultation<ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" /></a>
             <a href="#tools" className="inline-flex h-12 items-center gap-2 rounded-full border border-line-strong bg-surface/60 px-6 text-[14.5px] font-semibold text-accent backdrop-blur hover:bg-raised">Try free tools</a>
           </div>
           <p className="mt-5 text-[13px] text-muted">Talk to us: <a href={`tel:${SITE.contact.phones[0].replace(/[^+\d]/g, "")}`} className="font-medium text-ink hover:text-accent">{SITE.contact.phones[0]}</a> · <a href={`mailto:${SITE.contact.email}`} className="font-medium text-ink hover:text-accent">{SITE.contact.email}</a></p>
         </div>
-        <HeroVisual />
+          <div className="mt-8 flex flex-wrap justify-center gap-2" aria-label="What we do">
+            {["Websites", "Amazon · Flipkart · Shopify", "Social media", "SEO · AEO · GEO", "Telegram alerts"].map((c) => <span key={c} className="rounded-full border border-line-strong bg-surface/60 px-3.5 py-1 text-[12.5px] text-muted">{c}</span>)}
+          </div>
       </div>
     </section>
   );
@@ -128,7 +101,7 @@ export function Services() {
         {SERVICE_CARDS.map((s, i) => (
           <Reveal key={s.title} delay={i * 60}>
             <a href="#enquiry" className="gold-frame group flex h-full flex-col rounded-2xl border border-line bg-surface/80 p-6 backdrop-blur transition-all hover:-translate-y-1.5 hover:shadow-card">
-              <span className="flex size-12 items-center justify-center rounded-full border border-line-strong bg-gradient-to-br from-[#e39aa8]/20 to-transparent text-accent transition-transform group-hover:scale-110"><s.icon className="size-5" /></span>
+              <span className="flex size-12 items-center justify-center rounded-full border border-line-strong bg-gradient-to-br from-[#f2a7b8]/20 to-transparent text-accent transition-transform group-hover:scale-110"><s.icon className="size-5" /></span>
               <p className="font-royal mt-4 text-[21px]">{s.title}</p>
               <p className="mt-1.5 flex-1 text-[13.5px] text-muted">{s.body}</p>
               <span className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold text-accent">Talk to us<ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" /></span>
@@ -212,7 +185,7 @@ export function TechStack() {
           <div role="tabpanel" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {STACK[k].map((t, i) => (
               <div key={`${k}-${t}`} className="overlay-in gold-frame flex flex-col items-center justify-center gap-2 rounded-xl border border-line bg-surface p-4 text-center" style={{ animationDelay: `${i * 50}ms` }}>
-                <span className="font-royal flex size-12 items-center justify-center rounded-full border border-line-strong bg-gradient-to-br from-[#e39aa8]/25 to-transparent text-[18px] font-bold text-accent">{t.replace(/[^A-Za-z]/g, "").slice(0, 2)}</span>
+                <span className="font-royal flex size-12 items-center justify-center rounded-full border border-line-strong bg-gradient-to-br from-[#f2a7b8]/25 to-transparent text-[18px] font-bold text-accent">{t.replace(/[^A-Za-z]/g, "").slice(0, 2)}</span>
                 <span className="text-[13px] font-medium"><Code2 className="mr-1 inline size-3.5 text-faint" />{t}</span>
               </div>
             ))}
@@ -247,11 +220,11 @@ export function SocialSection() {
         </Reveal>
       </div>
       <Reveal className="relative mx-auto aspect-square w-full max-w-[420px]">
-        <div className="absolute inset-[12%] rounded-full bg-[radial-gradient(circle,rgb(196_106_122/0.18),transparent_70%)]" aria-hidden />
+        <div className="absolute inset-[12%] rounded-full bg-[radial-gradient(circle,rgb(242_167_184/0.18),transparent_70%)]" aria-hidden />
         <div className="absolute inset-[4%] rounded-full border border-dashed border-line-strong" aria-hidden />
         <div className="absolute top-1/2 left-1/2 flex h-[46%] w-[26%] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[18px] border-4 border-accent/70 bg-surface p-1.5 shadow-card" aria-hidden>
           <div className="mx-auto h-1 w-6 rounded-full bg-line-strong" />
-          <div className="mt-2 h-1/3 rounded-md bg-gradient-to-br from-[#e39aa8] to-[#a94d61]" />
+          <div className="mt-2 h-1/3 rounded-md bg-gradient-to-br from-[#f2a7b8] to-[#8e2340]" />
           <div className="mt-1.5 h-1.5 w-3/4 rounded bg-line-strong" /><div className="mt-1 h-1.5 w-1/2 rounded bg-line" />
           <div className="mt-auto flex justify-around pb-1"><span className="size-2 rounded-full bg-neg" /><span className="size-2 rounded-full bg-accent" /><span className="size-2 rounded-full bg-pos" /></div>
         </div>

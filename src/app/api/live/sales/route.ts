@@ -14,7 +14,7 @@ const row = z.object({
   amount: z.number().finite().nullable(),
 });
 const schema = z.object({
-  source: z.enum(["Amazon", "Flipkart", "Meesho", "Myntra", "Other"]),
+  source: z.enum(["Amazon", "Flipkart", "Shopify", "Meesho", "Myntra", "Other"]),
   fileName: z.string().max(200),
   rows: z.array(row).min(1, "The file has no rows to import").max(5000, "Import up to 5,000 rows at a time"),
 });
