@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     // Live test: only the people named in LIVE_ALLOWED_EMAILS can sign in (they can see website enquiries).
     const allowed = (process.env.LIVE_ALLOWED_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
     if (!allowed.length) return fail("Live sign-in is not open yet (LIVE_ALLOWED_EMAILS is not set).", 503);
-    if (!allowed.includes(email)) return fail("This email is not on the live-test list. Ask the Shalini_IQ team to add it.", 403);
+    if (!allowed.includes(email)) return fail("This email is not allowed to sign in. Ask the Shalini_IQ owner to add it.", 403);
     const { name, phone } = parsed.data;
 
     const found = await sql(`SELECT id FROM live_accounts WHERE email = $1`, [email]);

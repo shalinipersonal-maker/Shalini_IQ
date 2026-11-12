@@ -38,8 +38,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
       <div className="royal flex h-dvh flex-col overflow-hidden">
         <header className="flex shrink-0 items-center justify-between gap-3 border-b border-line bg-surface px-4 py-2.5">
-          <Link href="/studio" className="flex items-center gap-2"><BrandMark size={26} /><span className="text-[14px] font-semibold">Shalini_IQ</span><span className="text-[13px] text-muted">· Creative Studio</span></Link>
-          <nav className="flex items-center gap-3 text-[13px]"><ThemeToggle /><Link href="/studio" className="text-muted hover:text-ink">All designs</Link><Link href="/account" className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 font-medium hover:bg-raised"><ArrowLeft className="size-4" />Back to dashboard</Link></nav>
+          <Link href="/studio/motion" className="flex items-center gap-2"><BrandMark size={26} /><span className="text-[14px] font-semibold">Shalini_IQ</span><span className="text-[13px] text-muted">· Creative Studio</span></Link>
+          <nav className="flex items-center gap-3 text-[13px]"><ThemeToggle /><Link href="/studio/motion" className="text-muted hover:text-ink">Templates</Link><Link href="/studio" className="text-muted hover:text-ink">My designs</Link><Link href="/account" className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 font-medium hover:bg-raised"><ArrowLeft className="size-4" />Back to dashboard</Link></nav>
         </header>
         <main className="scroll-thin flex-1 overflow-y-auto">{fullBleed ? children : <div className="mx-auto w-full max-w-[1480px] px-4 py-6 sm:px-6">{children}</div>}</main>
       </div>

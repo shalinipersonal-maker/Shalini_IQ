@@ -53,15 +53,15 @@ export const GIF_SIZES: Size[] = [
 ];
 
 const OCCASIONS: { occasion: string; lines: [string, string, string][] }[] = [
-  { occasion: "New arrival", lines: [["New arrivals", "Handpicked for you", "Shop now"], ["Just landed", "Fresh designs this week", "See the collection"], ["Meet the new collection", "Made to be noticed", "Explore"]] },
-  { occasion: "Festive", lines: [["Festive picks", "Shine this season", "Order now"], ["Diwali sparkle", "Gift-ready, delivered fast", "Shop Diwali"], ["Pongal specials", "Traditional, timeless, yours", "Shop now"]] },
-  { occasion: "Sale", lines: [["Flat 20% off", "This weekend only", "Grab yours"], ["Price drop", "Limited stock", "Shop the offer"], ["Buy 2, save more", "Mix and match any designs", "Shop now"]] },
-  { occasion: "Bridal", lines: [["Bridal edit", "For your big day", "Book a look"], ["Wedding season", "Statement pieces, made to last", "Explore bridal"]] },
-  { occasion: "Gifting", lines: [["The perfect gift", "Wrapped and ready", "Send a gift"], ["Gift her a smile", "Thoughtful, elegant, affordable", "Shop gifts"]] },
-  { occasion: "Everyday", lines: [["Everyday elegance", "Light, comfortable, beautiful", "Shop daily wear"], ["Style it your way", "Pieces for every outfit", "Shop now"]] },
-  { occasion: "Launch", lines: [["We are live!", "Our store is now open", "Visit the store"], ["Coming soon", "Something beautiful is on its way", "Get notified"]] },
-  { occasion: "Restock", lines: [["Back in stock", "Your favourites are back", "Order before they go"], ["Restocked", "Limited pieces available", "Shop now"]] },
-  { occasion: "Tip", lines: [["Jewellery care tip", "Store pieces dry, away from perfume", "Learn more"], ["Styling tip", "Pair bold earrings with a simple neckline", "Follow for more"]] },
+  { occasion: "New arrival", lines: [["New arrivals", "Handpicked for you", "Shop now"], ["Just landed", "Fresh designs this week", "See the collection"], ["Meet the new collection", "Made to be noticed", "Explore"], ["Fresh off the table", "Small batch, big sparkle", "See what's new"], ["This week's drop", "Only a few of each", "Shop the drop"]] },
+  { occasion: "Festive", lines: [["Festive picks", "Shine this season", "Order now"], ["Diwali sparkle", "Gift-ready, delivered fast", "Shop Diwali"], ["Pongal specials", "Traditional, timeless, yours", "Shop now"], ["Navratri glow", "Nine nights, nine looks", "Shop festive"], ["Celebrate in style", "Festive jewellery, gift-boxed", "Order today"]] },
+  { occasion: "Sale", lines: [["Flat 20% off", "This weekend only", "Grab yours"], ["Price drop", "Limited stock", "Shop the offer"], ["Buy 2, save more", "Mix and match any designs", "Shop now"], ["Weekend sale", "Up to 30% off selected pieces", "Shop the sale"], ["Last few hours", "Offer ends tonight", "Buy now"]] },
+  { occasion: "Bridal", lines: [["Bridal edit", "For your big day", "Book a look"], ["Wedding season", "Statement pieces, made to last", "Explore bridal"], ["Bride squad ready", "Matching sets for the whole family", "Enquire now"], ["Temple jewellery", "Timeless bridal classics", "See the set"]] },
+  { occasion: "Gifting", lines: [["The perfect gift", "Wrapped and ready", "Send a gift"], ["Gift her a smile", "Thoughtful, elegant, affordable", "Shop gifts"], ["Gifts under ₹999", "Pretty, packed and posted", "Pick a gift"], ["For mom, with love", "A sparkle she will keep", "Shop gifts"]] },
+  { occasion: "Everyday", lines: [["Everyday elegance", "Light, comfortable, beautiful", "Shop daily wear"], ["Style it your way", "Pieces for every outfit", "Shop now"], ["Office to evening", "Light pieces you can wear all day", "Shop now"], ["Minimal, always", "Clean designs for daily wear", "Explore"]] },
+  { occasion: "Launch", lines: [["We are live!", "Our store is now open", "Visit the store"], ["Coming soon", "Something beautiful is on its way", "Get notified"], ["Now on Instagram", "Follow us for new drops", "Follow"], ["Order on WhatsApp", "Message us to order in minutes", "Message us"]] },
+  { occasion: "Restock", lines: [["Back in stock", "Your favourites are back", "Order before they go"], ["Restocked", "Limited pieces available", "Shop now"], ["Sold out, now back", "Restocked by popular demand", "Shop again"], ["Best sellers are back", "Grab them this time", "Order now"]] },
+  { occasion: "Tip", lines: [["Jewellery care tip", "Store pieces dry, away from perfume", "Learn more"], ["Styling tip", "Pair bold earrings with a simple neckline", "Follow for more"], ["How to clean jewellery", "Wipe with a soft dry cloth after wearing", "Save this"], ["Layering tip", "Mix one long and one short chain", "Try it"]] },
 ];
 
 const LAYOUTS: Layout[] = ["center", "splitLeft", "splitTop", "frame", "badge", "diagonal", "arch", "polaroid", "minimal", "grid", "sale", "tip"];
@@ -79,7 +79,7 @@ function build(kind: Kind, count: number, seed: number): Template[] {
   let i = 0;
   while (out.length < count && i < count * 20) {
     i++;
-    const occ = OCCASIONS[out.length % OCCASIONS.length];
+    const occ = OCCASIONS[i % OCCASIONS.length];
     let layout = LAYOUTS[Math.floor(r() * LAYOUTS.length)];
     if (occ.occasion === "Tip") layout = r() < 0.6 ? "tip" : "minimal";
     if (occ.occasion === "Sale" && r() < 0.5) layout = "sale";
@@ -88,10 +88,10 @@ function build(kind: Kind, count: number, seed: number): Template[] {
     const motion = MOTIONS[Math.floor(r() * MOTIONS.length)];
     const sizes = kind === "gif" ? GIF_SIZES : SIZES;
     const size = kind === "video" ? (r() < 0.6 ? SIZES[2] : SIZES[Math.floor(r() * 2)]) : sizes[Math.floor(r() * sizes.length)];
-    const key = `${layout}-${palette}-${occ.occasion}-${kind === "photo" ? "" : motion}`;
+    const line = occ.lines[Math.floor(r() * occ.lines.length)];
+    const key = `${layout}-${palette}-${line[0]}-${kind === "photo" ? serif : motion}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    const line = occ.lines[Math.floor(r() * occ.lines.length)];
     const n = out.length + 1;
     out.push({
       id: `${kind}-${String(n).padStart(3, "0")}`, kind, occasion: occ.occasion, layout, palette, serif, motion, size,
@@ -103,9 +103,9 @@ function build(kind: Kind, count: number, seed: number): Template[] {
   return out;
 }
 
-export const PHOTO_TEMPLATES = build("photo", 200, 11);
-export const VIDEO_TEMPLATES = build("video", 50, 29);
-export const GIF_TEMPLATES = build("gif", 100, 47);
+export const PHOTO_TEMPLATES = build("photo", 500, 11);
+export const VIDEO_TEMPLATES = build("video", 200, 29);
+export const GIF_TEMPLATES = build("gif", 1000, 47);
 export const ALL_TEMPLATES = [...PHOTO_TEMPLATES, ...VIDEO_TEMPLATES, ...GIF_TEMPLATES];
 export const OCCASION_LIST = OCCASIONS.map((o) => o.occasion);
 export { MOTION_NAME, LAYOUT_NAME };

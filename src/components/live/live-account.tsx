@@ -75,7 +75,7 @@ const TABS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "alerts", label: "Enquiries", icon: Inbox },
   { id: "meta", label: "Post", icon: Send },
-  { id: "studio", label: "Creative Studio", icon: Palette, href: "/studio" },
+  { id: "studio", label: "Creative Studio", icon: Palette, href: "/studio/motion" },
   { id: "boost", label: "Boost", icon: Rocket },
   { id: "sales", label: "Sales", icon: ShoppingBag },
   { id: "visibility", label: "SEO · AEO", icon: Search },

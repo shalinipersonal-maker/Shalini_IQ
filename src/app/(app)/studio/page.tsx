@@ -40,6 +40,11 @@ function Library() {
           <MenuContent className="w-72">{[...new Set(PLACEMENTS.map((p) => p.group))].map((g) => <React.Fragment key={g}><MenuLabel>{g}</MenuLabel>{PLACEMENTS.filter((p) => p.group === g).map((p) => <MenuItem key={p.id} onSelect={() => create(`Untitled ${p.label.toLowerCase()}`, "Custom", p.id, { width: p.w, height: p.h, background: "#ffffff", els: [] })}><span className="flex-1">{p.label}</span><span className="tnum text-[12px] text-faint">{p.w} × {p.h}</span></MenuItem>)}</React.Fragment>)}</MenuContent>
         </Menu>} />
 
+      <a href="/studio/motion" className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/40 bg-accent-soft px-5 py-4 hover:border-accent">
+        <span><span className="block text-[15px] font-semibold text-accent">1,700 ready templates — 500 photos · 200 videos · 1,000 GIFs</span><span className="block text-[13px] text-muted">With your own music, beat sync, and MP4 / GIF / PNG download.</span></span>
+        <span className="rounded-lg bg-accent px-4 py-2 text-[13.5px] font-semibold text-accent-ink">Open templates →</span>
+      </a>
+
       {product && <div className="mb-4 flex items-center gap-2 rounded-lg border border-accent/40 bg-accent-soft px-3 py-2 text-[13px] text-accent"><Palette className="size-4" />Templates below are filled in with <strong className="font-semibold">{product.name}</strong> — its name, price and discount.<button type="button" aria-label="Clear product" className="ml-auto" onClick={() => router.replace(path)}><X className="size-4" /></button></div>}
 
       <h2 className="mb-3 text-[15px] font-semibold">Your creatives <span className="font-normal text-muted">· {mine.length}</span></h2>
