@@ -9,9 +9,11 @@ import { overview, ownerAccountId, type Overview } from "./overview";
  * gets business data; anyone else who messages the bot is told nothing except how to set it up.
  * Setup: BotFather → /newbot → TELEGRAM_BOT_TOKEN. Then message the bot "/start" to learn the chat id.
  */
-const API = () => `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`;
-export const telegramConfigured = () => !!process.env.TELEGRAM_BOT_TOKEN;
-export const ownerChat = () => process.env.TELEGRAM_CHAT_ID ?? "";
+/** The token as typed in Vercel, cleaned of spaces, line breaks, quotes and a stray "bot" prefix. */
+const botToken = () => (process.env.TELEGRAM_BOT_TOKEN ?? "").replace(/\s+/g, "").replace(/^["']+|["']+$/g, "").replace(/^TELEGRAM_BOT_TOKEN=/, "").replace(/^bot(?=\d)/i, "");
+const API = () => `https://api.telegram.org/bot${botToken()}`;
+export const telegramConfigured = () => !!botToken();
+export const ownerChat = () => (process.env.TELEGRAM_CHAT_ID ?? "").replace(/\s+/g, "").replace(/^["']+|["']+$/g, "");
 export const webhookSecret = () => createHash("sha256").update(`${process.env.SESSION_SECRET ?? ""}:telegram`).digest("hex").slice(0, 48);
 
 const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
@@ -36,8 +38,9 @@ export async function sendTo(chatId: string, html: string): Promise<boolean> {
 export const notify = (html: string) => sendTo(ownerChat(), html);
 
 export async function setWebhook(origin: string): Promise<{ ok: boolean; bot?: string; error?: string }> {
-  const me = await fetch(`${API()}/getMe`).then((r) => r.json()).catch(() => null) as { ok?: boolean; result?: { username?: string } } | null;
-  if (!me?.ok) return { ok: false, error: "The bot token was not accepted. Check TELEGRAM_BOT_TOKEN." };
+  if (!/^\d{6,}:[A-Za-z0-9_-]{30,}$/.test(botToken())) return { ok: false, error: "TELEGRAM_BOT_TOKEN doesn't look like a bot token (numbers, a colon, then about 35 letters). Paste it again from BotFather." };
+  const me = await fetch(`${API()}/getMe`).then((r) => r.json()).catch((e: Error) => ({ ok: false, description: `could not reach Telegram (${e.message})` })) as { ok?: boolean; description?: string; result?: { username?: string } };
+  if (!me?.ok) return { ok: false, error: `Telegram did not accept the bot token: ${me?.description ?? "unknown reason"}. Copy it again from BotFather → /mybots → your bot → API Token.` };
   const res = await fetch(`${API()}/setWebhook`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
