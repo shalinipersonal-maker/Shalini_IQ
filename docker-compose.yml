@@ -1,0 +1,49 @@
+# Production-style local stack for ENTRAIQ.
+#
+#   docker compose up --build            # app only, demo mode (no DB needed)
+#   docker compose --profile db up        # app + PostgreSQL (for wiring live data)
+#
+# The app runs in demo mode by default and does NOT require the database to start.
+# Postgres is provided for when you move to DB-backed data (see docs/DEPLOYMENT.md).
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: entraiq:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      # Demo mode stays on unless explicitly set to "false".
+      NEXT_PUBLIC_DEMO_MODE: ${NEXT_PUBLIC_DEMO_MODE:-true}
+      # Only read once you implement the DB-backed/live-integration layer:
+      DATABASE_URL: ${DATABASE_URL:-}
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:-}
+    env_file:
+      - path: .env
+        required: false
+
+  # Optional: start with `--profile db`. Not needed to run the demo.
+  db:
+    profiles: ["db"]
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-entraiq}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-entraiq}
+      POSTGRES_DB: ${POSTGRES_DB:-entraiq}
+    ports:
+      - "5432:5432"
+    volumes:
+      - entraiq_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-entraiq}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  entraiq_pgdata:
