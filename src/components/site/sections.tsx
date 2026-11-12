@@ -33,11 +33,30 @@ export function SectionHead({ id, eyebrow, title, accent, body, center }: { id?:
 }
 
 /* ---------- Hero ---------- */
-const ROTATE = ["Amazon", "Flipkart", "Myntra", "Meesho", "your own store"];
+const ROTATE = ["Amazon", "Flipkart", "Meesho", "Myntra", "Shopify", "Instagram", "your own store"];
+/** Types each word letter by letter, holds it, deletes it, then types the next — with a blinking cursor. */
 function RotatingWord() {
-  const [i, setI] = React.useState(0);
-  React.useEffect(() => { const t = setInterval(() => setI((x) => (x + 1) % ROTATE.length), 2200); return () => clearInterval(t); }, []);
-  return <span className="word-rotate inline-block min-w-[6ch]"><span key={i} className="text-gradient">{ROTATE[i]}</span></span>;
+  const [w, setW] = React.useState(0);
+  const [n, setN] = React.useState(0);
+  const [del, setDel] = React.useState(false);
+  React.useEffect(() => {
+    const word = ROTATE[w];
+    const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { const t = setTimeout(() => { if (n !== word.length) setN(word.length); else { setW((x) => (x + 1) % ROTATE.length); setN(ROTATE[(w + 1) % ROTATE.length].length); } }, n !== word.length ? 0 : 2200); return () => clearTimeout(t); }
+    let t: ReturnType<typeof setTimeout>;
+    if (!del && n < word.length) t = setTimeout(() => setN(n + 1), 95);
+    else if (!del) t = setTimeout(() => setDel(true), 1500);
+    else if (n > 0) t = setTimeout(() => setN(n - 1), 45);
+    else t = setTimeout(() => { setDel(false); setW((x) => (x + 1) % ROTATE.length); }, 250);
+    return () => clearTimeout(t);
+  }, [w, n, del]);
+  const longest = ROTATE.reduce((a, b) => (b.length > a.length ? b : a));
+  return (
+    <span className="inline-grid align-baseline" aria-label={ROTATE.join(", ")}>
+      <span className="invisible col-start-1 row-start-1 text-gradient" aria-hidden>{longest}</span>
+      <span className="col-start-1 row-start-1 text-left whitespace-nowrap" aria-hidden><span className="text-gradient">{ROTATE[w].slice(0, n)}</span><span className="type-caret" /></span>
+    </span>
+  );
 }
 
 export function Hero() {

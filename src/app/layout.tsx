@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 // Applies the saved theme before first paint so the page never flashes the wrong colours.
-const themeScript = `try{var s=JSON.parse(localStorage.getItem("entraiq-demo-v1")||"{}").state||{};var e=document.documentElement;if((s.theme||"dark")==="dark")e.classList.add("dark");if(s.brand&&s.brand.accent)e.dataset.accent=s.brand.accent}catch(e){document.documentElement.classList.add("dark")}`;
+const themeScript = `try{var s=JSON.parse(localStorage.getItem("entraiq-demo-v1")||"{}").state||{};var e=document.documentElement;if(s.brand&&s.brand.accent)e.dataset.accent=s.brand.accent}catch(e){}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -39,7 +39,7 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 
 const initial = () => ({
   session: null as Session | null,
-  theme: "dark" as "dark" | "light",
+  theme: "light" as "dark" | "light",
   sidebarCollapsed: false,
   clientId: "aarvi",
   marketplace: "all" as MarketplaceFilter,

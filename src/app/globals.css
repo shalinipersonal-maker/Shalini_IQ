@@ -139,6 +139,8 @@ h1, h2, h3 { letter-spacing: -0.015em; }
 .dash-flow { stroke-dasharray: 6 8; animation: dash-flow 1.4s linear infinite; }
 @keyframes dash-flow { to { stroke-dashoffset: -28; } }
 .grid-fade { background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 44px 44px; mask-image: radial-gradient(ellipse at 50% 30%, #000 30%, transparent 75%); }
+.type-caret { display: inline-block; width: 0.06em; height: 0.82em; margin-left: 0.06em; background: var(--accent); vertical-align: -0.05em; animation: caret-blink 1s steps(1) infinite; }
+@keyframes caret-blink { 50% { opacity: 0; } }
 .word-rotate > span { display: inline-block; animation: word-in 0.5s cubic-bezier(.2,.8,.2,1); }
 @keyframes word-in { from { transform: translateY(60%); opacity: 0; } }
 /* ---------- Website theme (Shalini_IQ): style 23 — Wine & Blush. Dark = wine, light = blush. ---------- */

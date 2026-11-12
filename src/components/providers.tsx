@@ -9,7 +9,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const hydrated = useStore((s) => s.hydrated);
   React.useEffect(() => {
     // Persisted demo state is loaded after mount so server and client markup always match.
-    Promise.resolve(useStore.persist.rehydrate()).finally(() => useStore.setState({ hydrated: true }));
+    Promise.resolve(useStore.persist.rehydrate()).finally(() => useStore.setState({ hydrated: true, theme: "light" })); // every visit opens in light; the ☾ switch is per visit
   }, []);
   React.useEffect(() => {
     if (!hydrated) return;
