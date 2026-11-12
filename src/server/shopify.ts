@@ -54,13 +54,12 @@ export async function shopInfo(): Promise<{ name: string; url: string }> {
 interface OrderNode {
   id: string; name: string; createdAt: string; cancelledAt: string | null; displayFinancialStatus: string | null;
   totalPriceSet: { shopMoney: { amount: string; currencyCode: string } };
-  customer: { firstName: string | null } | null;
   lineItems: { nodes: { sku: string | null; title: string; quantity: number; originalTotalSet: { shopMoney: { amount: string } } }[] };
 }
 const ORDERS = `query($q: String!, $after: String) {
   orders(first: 50, after: $after, query: $q, sortKey: CREATED_AT, reverse: true) {
     pageInfo { hasNextPage endCursor }
-    nodes { id name createdAt cancelledAt displayFinancialStatus totalPriceSet { shopMoney { amount currencyCode } } customer { firstName }
+    nodes { id name createdAt cancelledAt displayFinancialStatus totalPriceSet { shopMoney { amount currencyCode } }
       lineItems(first: 50) { nodes { sku title quantity originalTotalSet { shopMoney { amount } } } } }
   }
 }`;
@@ -96,7 +95,7 @@ export async function newOrders(sinceIso: string): Promise<{ name: string; total
   const orders = await ordersSince(sinceIso, 50);
   return orders.filter((o) => o.createdAt > sinceIso && !o.cancelledAt).map((o) => ({
     name: o.name, total: o.totalPriceSet.shopMoney.amount, currency: o.totalPriceSet.shopMoney.currencyCode,
-    items: o.lineItems.nodes.map((l) => `${l.quantity}× ${l.title}`).join(", ").slice(0, 200), customer: o.customer?.firstName ?? "", createdAt: o.createdAt,
+    items: o.lineItems.nodes.map((l) => `${l.quantity}× ${l.title}`).join(", ").slice(0, 200), customer: "", createdAt: o.createdAt,
   }));
 }
 

@@ -10,3 +10,15 @@ export async function GET() {
     return json({ ok: true, leads: rows });
   });
 }
+
+/** Deletes one enquiry (?reference=ENQ-…) or every enquiry (?all=1). */
+export async function DELETE(request: Request) {
+  return withAccount(async () => {
+    const u = new URL(request.url);
+    const ref = u.searchParams.get("reference");
+    if (u.searchParams.get("all") === "1") await sql(`DELETE FROM live_leads`);
+    else if (ref && /^[A-Z0-9-]{4,40}$/i.test(ref)) await sql(`DELETE FROM live_leads WHERE reference = $1`, [ref]);
+    else return json({ ok: false, error: "Nothing to delete" }, 400);
+    return json({ ok: true });
+  });
+}

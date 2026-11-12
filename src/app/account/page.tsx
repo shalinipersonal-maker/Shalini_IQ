@@ -5,8 +5,8 @@ import { LIVE_APP_NAME } from "@/config/live";
 import { ROYAL } from "../site-fonts";
 
 export const metadata: Metadata = {
-  title: `${LIVE_APP_NAME} — live test`,
-  description: `Sign in with your own email to test ${LIVE_APP_NAME} with your real accounts.`,
+  title: `${LIVE_APP_NAME} — Dashboard`,
+  description: `Sign in to run your business on ${LIVE_APP_NAME}.`,
   robots: { index: false, follow: false },
 };
 

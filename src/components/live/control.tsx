@@ -1,5 +1,5 @@
 "use client";
-import { Bot, Megaphone, MessageSquareText, Pause, Play, RefreshCw, Rocket, ScanSearch, ShoppingBag, ThumbsUp } from "lucide-react";
+import { Bot, Check, Eraser, Megaphone, MessageSquareText, Pause, Play, RefreshCw, Rocket, ShoppingBag, Sparkles, ThumbsUp } from "lucide-react";
 import * as React from "react";
 import { Badge, Button, Card, CardHeader, Field, Input, Select, Textarea, cn } from "@/components/ui";
 import { inr } from "@/lib/format";
@@ -193,14 +193,38 @@ export function BoostCard() {
 /* ---------- Listing visibility: SEO · AEO · GEO · AIO · AXO ---------- */
 const BLANK = { marketplace: "amazon" as Marketplace, brand: "", title: "", bullets: "", description: "", faq: "", price: "", sku: "", imageCount: 0, whiteMainImage: false };
 
+interface AiListing { title: string; bullets: string[]; description: string; faq: string[]; keywords: string[]; tips: string[] }
+
 export function VisibilityCard() {
   const [v, setV] = React.useState(BLANK);
-  const [shown, setShown] = React.useState<VisibilityReport | null>(null);
+  const [ai, setAi] = React.useState<AiListing | null>(null);
+  const [aiBusy, setAiBusy] = React.useState(false);
+  const [aiError, setAiError] = React.useState("");
   const set = <K extends keyof typeof BLANK>(k: K, val: (typeof BLANK)[K]) => setV((s) => ({ ...s, [k]: val }));
   const tone = (n: number) => (n >= 80 ? "text-pos" : n >= 50 ? "text-warn" : "text-neg");
+  // Scores update live while typing — no button needed.
+  const deferred = React.useDeferredValue(v);
+  const shown = React.useMemo(() => (deferred.title.trim() ? visibilityReport(deferred) : null), [deferred]);
+  const overall = shown ? Math.round(shown.pillars.reduce((a, p) => a + p.score, 0) / shown.pillars.length) : 0;
+
+  const clear = () => { setV(BLANK); setAi(null); setAiError(""); };
+  const improve = async () => {
+    if (!shown) return;
+    setAiBusy(true); setAiError(""); setAi(null);
+    const missing = shown.pillars.flatMap((p) => p.checks.filter((c) => !c.ok).map((c) => `${p.name}: ${c.label} — ${c.fix}`));
+    const r = await api<AiListing>("/api/live/listing-ai", { method: "POST", body: JSON.stringify({ marketplace: v.marketplace, brand: v.brand, title: v.title, bullets: v.bullets, description: v.description, faq: v.faq, price: v.price, sku: v.sku, missing }) });
+    setAiBusy(false);
+    if (r.ok) setAi(r); else setAiError(r.error ?? "AI could not answer. Try again.");
+  };
+  const useAi = () => {
+    if (!ai) return;
+    setV((s) => ({ ...s, title: ai.title || s.title, bullets: ai.bullets.length ? ai.bullets.join("\n") : s.bullets, description: ai.description || s.description, faq: ai.faq.length ? ai.faq.join("\n") : s.faq }));
+    setAi(null);
+  };
+
   return (
     <Card id="visibility" className="scroll-mt-20">
-      <CardHeader title="Listing visibility — SEO · AEO · GEO · AIO · AXO" subtitle="Paste one Amazon, Flipkart or Myntra listing. You get five scores — found in search, answers buyers' questions, quoted by AI assistants, ready for Google AI Overviews, ready for AI shopping agents — and exactly what to add." />
+      <CardHeader title="Listing visibility — SEO · AEO · GEO · AIO · AXO" subtitle="Type or paste one Amazon, Flipkart or Myntra listing. The five scores update as you type. Press Improve with AI and Claude rewrites the listing to fix every gap; you choose whether to use it." />
       <div className="grid gap-3 px-5 pb-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field label="Marketplace"><Select value={v.marketplace} onChange={(e) => set("marketplace", e.target.value as Marketplace)}><option value="amazon">Amazon</option><option value="flipkart">Flipkart</option><option value="myntra">Myntra</option></Select></Field>
         <Field label="Brand"><Input value={v.brand} placeholder="Shalz" onChange={(e) => set("brand", e.target.value)} /></Field>
@@ -212,13 +236,35 @@ export function VisibilityCard() {
         <Field label="FAQs (Q: …? A: …, one per line)" className="sm:col-span-2"><Textarea rows={3} value={v.faq} onChange={(e) => set("faq", e.target.value)} /></Field>
         <Field label="Number of photos"><Input type="number" min={0} max={20} value={v.imageCount} onChange={(e) => set("imageCount", Number(e.target.value))} /></Field>
         <label className="mt-6 flex items-center gap-2 text-[13px]"><input type="checkbox" checked={v.whiteMainImage} onChange={(e) => set("whiteMainImage", e.target.checked)} />Main photo on plain white</label>
-        <div className="sm:col-span-2 lg:col-span-4"><Button variant="primary" disabled={!v.title.trim()} onClick={() => setShown(visibilityReport(v))}><ScanSearch />Check visibility</Button></div>
+        <div className="flex flex-wrap items-center gap-2 sm:col-span-2 lg:col-span-4">
+          <Button variant="primary" disabled={!v.title.trim() || aiBusy} onClick={improve}><Sparkles />{aiBusy ? "Claude is rewriting…" : "Improve with AI"}</Button>
+          <Button variant="secondary" onClick={clear}><Eraser />Clear</Button>
+          {shown && <span className="text-[13px] text-muted">Overall <b className={cn("tnum", tone(overall))}>{overall}/100</b> · updates as you type</span>}
+        </div>
+        {aiError && <p className="text-[13px] text-neg sm:col-span-2 lg:col-span-4">{aiError}</p>}
       </div>
+
+      {ai && (
+        <div className="space-y-3 border-t border-line bg-accent-soft/40 px-5 py-4 text-[13px]">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="font-semibold">Claude's improved listing</p>
+            <div className="flex gap-2"><Button size="sm" variant="primary" onClick={useAi}><Check />Use this</Button><Button size="sm" variant="ghost" onClick={() => setAi(null)}>Discard</Button></div>
+          </div>
+          <p><b>Title:</b> {ai.title}</p>
+          {ai.bullets.length > 0 && <div><b>Key points</b><ul className="mt-1 list-disc space-y-1 pl-5">{ai.bullets.map((b, i) => <li key={i}>{b}</li>)}</ul></div>}
+          {ai.description && <div><b>Description</b><p className="mt-1 whitespace-pre-line">{ai.description}</p></div>}
+          {ai.faq.length > 0 && <div><b>FAQs</b><ul className="mt-1 space-y-1">{ai.faq.map((f, i) => <li key={i}>{f}</li>)}</ul></div>}
+          {ai.keywords.length > 0 && <p><b>Search words:</b> {ai.keywords.join(", ")}</p>}
+          {ai.tips.length > 0 && <div><b>Also do</b><ul className="mt-1 list-disc space-y-1 pl-5">{ai.tips.map((t, i) => <li key={i}>{t}</li>)}</ul></div>}
+          <p className="text-[12px] text-faint">Anything in [square brackets] is a fact only you know (size, weight, material). Fill it in before you publish.</p>
+        </div>
+      )}
+
       {shown && (
         <div className="space-y-4 border-t border-line px-5 py-4 text-[13px]">
           <div className="grid gap-3 sm:grid-cols-5">
             {shown.pillars.map((p) => (
-              <a key={p.key} href={`#vis-${p.key}`} className="rounded-xl border border-line p-3 hover:border-line-strong">
+              <a key={p.key} href={`#vis-${p.key}`} onClick={(e) => { e.preventDefault(); document.getElementById(`vis-${p.key}`)?.scrollIntoView({ behavior: "smooth", block: "center" }); }} className="rounded-xl border border-line p-3 hover:border-line-strong">
                 <span className="block text-[12px] font-semibold tracking-wide text-muted">{p.name}</span>
                 <span className={cn("tnum block text-[26px] font-semibold", tone(p.score))}>{p.score}</span>
                 <span className="block text-[11.5px] text-faint">{p.plain}</span>

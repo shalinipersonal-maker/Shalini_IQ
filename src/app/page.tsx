@@ -42,7 +42,7 @@ const FAQ = [
   ["Do you work with small brands?", "Yes. Many of our clients are growing family brands. We start with what will pay back first and add more as sales grow."],
   ["Do you sell or manage seller accounts on marketplaces?", "No. We build the websites, marketing and software. For marketplace account management we work alongside agencies, who use our Shalini_IQ platform."],
   ["Are the fee calculators exact?", "They use the latest public fee rules we could verify (November 2026) and show their sources. Marketplaces change fees often and some depend on your contract, so every rate can be edited to match your seller dashboard."],
-  ["What is Shalini_IQ?", "Our platform for marketplace agencies: one workspace for every seller's Amazon, Flipkart, Myntra and Meta numbers, listings, creatives and reports. The preview you can open today uses sample data; live connections switch on during setup."],
+  ["What is Shalini_IQ?", "Shalz Materials & Ornaments' own business dashboard: enquiries, Facebook, Instagram and Threads posts, Shopify, Amazon and Flipkart sales, listing checks and creatives, all in one place."],
   ["How do I start?", "Book a free consultation, call or WhatsApp us. We reply within one working day."],
 ] as const;
 

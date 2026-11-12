@@ -18,7 +18,7 @@ export async function sendLeadAlert(lead: Lead, reference: string): Promise<"sen
   return outcome;
 }
 
-/** Live test: keep every enquiry in the database so it survives across browsers and devices. */
+/** keep every enquiry in the database so it survives across browsers and devices. */
 const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
 
 async function saveLead(lead: Lead, reference: string, alert: string): Promise<void> {
@@ -34,7 +34,7 @@ async function saveLead(lead: Lead, reference: string, alert: string): Promise<v
   }
 }
 
-/** Live test: email each enquiry to ALERT_EMAIL (Shalini) through Resend. */
+/** email each enquiry to ALERT_EMAIL (Shalini) through Resend. */
 async function emailAlert(lead: Lead, reference: string): Promise<"sent" | "pending_configuration" | "failed"> {
   const to = process.env.ALERT_EMAIL;
   if (!to || !mailConfigured()) return "pending_configuration";

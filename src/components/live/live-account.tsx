@@ -1,5 +1,5 @@
 "use client";
-import { Check, ExternalLink, FileUp, Image as ImageIcon, Inbox, LogOut, Mail, RefreshCw, Send, Trash2, TrendingUp, X } from "lucide-react";
+import { ArrowLeft, Check, ExternalLink, LayoutDashboard, MessageCircle, Palette, Rocket, Search, Settings2, ShoppingBag, FileUp, Image as ImageIcon, Inbox, LogOut, Mail, RefreshCw, Send, Trash2, TrendingUp, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import * as React from "react";
@@ -47,7 +47,7 @@ export function LiveAccount() {
     <div className="min-h-dvh bg-bg">
       <header className="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-          <Link href="/" className="flex items-center gap-2" aria-label="Back to the website"><BrandMark size={28} /><span className="text-[14.5px] font-semibold">{LIVE_APP_NAME}</span><Badge tone="pos" dot>Live test</Badge></Link>
+          <Link href="/" className="flex items-center gap-2" aria-label="Back to the website"><BrandMark size={28} /><span className="text-[14.5px] font-semibold">{LIVE_APP_NAME}</span><Badge tone="pos" dot>Live</Badge></Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
                         {account && <Button variant="ghost" size="sm" onClick={logout}><LogOut />Sign out</Button>}
@@ -55,50 +55,95 @@ export function LiveAccount() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl space-y-5 px-4 py-6">
-        <div>
-          <h1 className="text-[24px] font-semibold tracking-tight">Test {LIVE_APP_NAME} with your real accounts</h1>
-          <p className="mt-1 max-w-2xl text-[13.5px] text-muted">Everything on this page is real: your sign-in, your enquiry alerts, your Facebook and Instagram posts, and the sales reports you upload. Nothing here is sample or made-up data.</p>
-        </div>
-
-        <StatusCard status={status} />
-
+      <main className="mx-auto max-w-5xl space-y-5 px-4 py-5">
         {account === undefined && <Card className="p-6 text-[13.5px] text-muted">Checking your sign-in…</Card>}
-        {account === null && <SignIn linkError={params.get("error") === "link"} serverError={accountError} />}
-        {account && (
+        {account === null && (
           <>
-            <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
-              <div>
-                <p className="text-[12px] font-semibold tracking-wide text-accent">SIGNED IN</p>
-                <p className="text-[16px] font-semibold">{account.name || account.email}</p>
-                <p className="text-[13px] text-muted">{account.email}{account.phone ? ` · ${account.phone}` : ""}</p>
-              </div>
-              <nav className="flex flex-wrap gap-2 text-[13px]">
-                <a href="#overview" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">Overview</a>
-                <a href="#alerts" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">Enquiries</a>
-                <a href="#meta" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">Post</a>
-                <a href="/studio" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">Creative Studio</a>
-                <a href="#boost" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">Boost</a>
-                <a href="#sales" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">Sales</a>
-                <a href="#visibility" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">SEO · AEO</a>
-                <a href="#telegram" className="rounded-md border border-line px-3 py-1.5 hover:bg-raised">Telegram</a>
-              </nav>
-            </Card>
-            <OverviewCard />
-            <LeadsSection />
-            <MetaSection result={{ meta: params.get("meta"), pages: params.get("pages"), ig: params.get("ig"), msg: params.get("msg"), threads: params.get("threads"), name: params.get("name") }} />
-            <BoostCard />
-            <SalesSection />
-            <VisibilityCard />
-            <TelegramCard token={!!status?.telegram} chat={!!status?.telegramChat} cron={!!status?.cron} />
+            <StatusCard status={status} />
+            <SignIn linkError={params.get("error") === "link"} serverError={accountError} />
           </>
         )}
+        {account && <Dashboard account={account} status={status} params={params} />}
       </main>
     </div>
   );
 }
 
 /* ---------- Setup checklist ---------- */
+/* ---------- Tabs: one section at a time, with a Back button ---------- */
+const TABS = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "alerts", label: "Enquiries", icon: Inbox },
+  { id: "meta", label: "Post", icon: Send },
+  { id: "studio", label: "Creative Studio", icon: Palette, href: "/studio" },
+  { id: "boost", label: "Boost", icon: Rocket },
+  { id: "sales", label: "Sales", icon: ShoppingBag },
+  { id: "visibility", label: "SEO · AEO", icon: Search },
+  { id: "telegram", label: "Telegram", icon: MessageCircle },
+  { id: "setup", label: "Setup", icon: Settings2 },
+] as const;
+type TabId = (typeof TABS)[number]["id"];
+const isTab = (h: string): h is TabId => TABS.some((t) => t.id === h && !("href" in t));
+
+function Dashboard({ account, status, params }: { account: Account; status: Status | null; params: { get(k: string): string | null } }) {
+  const [tab, setTab] = React.useState<TabId>("overview");
+  React.useEffect(() => {
+    const read = () => { const h = window.location.hash.replace("#", ""); setTab(isTab(h) ? h : "overview"); };
+    read();
+    window.addEventListener("hashchange", read);
+    return () => window.removeEventListener("hashchange", read);
+  }, []);
+  const go = (id: TabId) => {
+    if (id === "overview") history.pushState(null, "", window.location.pathname + window.location.search);
+    else history.pushState(null, "", `#${id}`);
+    setTab(id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const current = TABS.find((t) => t.id === tab)!;
+
+  return (
+    <>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-[12px] font-semibold tracking-wide text-accent">SIGNED IN</p>
+          <p className="text-[16px] font-semibold leading-tight">{account.name || account.email}</p>
+        </div>
+        <p className="text-[12.5px] text-muted">{account.email}</p>
+      </div>
+
+      <nav aria-label="Dashboard sections" className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
+        {TABS.map((t) => {
+          const Icon = t.icon;
+          const active = t.id === tab;
+          const cls = cn(
+            "flex flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-3 text-center text-[12.5px] font-medium transition-colors",
+            active ? "border-accent bg-accent text-accent-ink shadow-sm" : "border-line bg-surface text-ink hover:border-accent/50 hover:bg-raised",
+          );
+          return "href" in t
+            ? <a key={t.id} href={t.href} className={cls}><Icon className="size-5" />{t.label}</a>
+            : <button key={t.id} type="button" onClick={() => go(t.id)} aria-current={active ? "page" : undefined} className={cls}><Icon className="size-5" />{t.label}</button>;
+        })}
+      </nav>
+
+      {tab !== "overview" && (
+        <div className="flex items-center gap-3">
+          <Button variant="secondary" size="sm" onClick={() => go("overview")}><ArrowLeft />Back</Button>
+          <h2 className="text-[17px] font-semibold">{current.label}</h2>
+        </div>
+      )}
+
+      {tab === "overview" && <OverviewCard />}
+      {tab === "alerts" && <LeadsSection />}
+      {tab === "meta" && <MetaSection result={{ meta: params.get("meta"), pages: params.get("pages"), ig: params.get("ig"), msg: params.get("msg"), threads: params.get("threads"), name: params.get("name") }} />}
+      {tab === "boost" && <BoostCard />}
+      {tab === "sales" && <SalesSection />}
+      {tab === "visibility" && <VisibilityCard />}
+      {tab === "telegram" && <TelegramCard token={!!status?.telegram} chat={!!status?.telegramChat} cron={!!status?.cron} />}
+      {tab === "setup" && <StatusCard status={status} />}
+    </>
+  );
+}
+
 function StatusCard({ status }: { status: Status | null }) {
   const items: { ok: boolean | undefined; label: string; what: string }[] = [
     { ok: status?.database, label: "Database", what: "Stores accounts, enquiries, posts and sales (DATABASE_URL)" },
@@ -208,17 +253,22 @@ function LeadsSection() {
     api<{ leads: Lead[] }>("/api/live/leads").then((r) => { if (r.ok) { setLeads(r.leads); setError(""); } else setError(r.error ?? ""); });
   }, []);
   React.useEffect(load, [load]);
+  const del = async (ref: string | null) => {
+    if (!confirm(ref ? "Delete this enquiry?" : "Delete ALL enquiries? This cannot be undone.")) return;
+    const r = await api(`/api/live/leads?${ref ? `reference=${encodeURIComponent(ref)}` : "all=1"}`, { method: "DELETE" });
+    if (r.ok) load(); else setError(r.error ?? "Could not delete");
+  };
   return (
     <Card id="alerts" className="scroll-mt-20">
       <CardHeader title="1 · Enquiry alerts" subtitle="Every enquiry from the website form and IQ chat is saved here and emailed to the alert address straight away."
-        action={<><Button size="sm" onClick={load}><RefreshCw />Refresh</Button><a href="/#enquiry" target="_blank" rel="noreferrer"><Button size="sm" variant="primary"><ExternalLink />Send a test enquiry</Button></a></>} />
+        action={<><Button size="sm" onClick={load}><RefreshCw />Refresh</Button>{!!leads?.length && <Button size="sm" variant="ghost" onClick={() => del(null)}><Trash2 />Delete all</Button>}<a href="/#enquiry" target="_blank" rel="noreferrer"><Button size="sm" variant="primary"><ExternalLink />Open enquiry form</Button></a></>} />
       <div className="px-5 pb-5">
         {error && <p className="text-[13px] text-neg">{error}</p>}
         {leads && !leads.length && <EmptyState icon={<Inbox />} title="No enquiries yet" body="Open the website, fill in the enquiry form with your own number, then come back and refresh." />}
         {leads && leads.length > 0 && (
           <div className="scroll-thin overflow-x-auto">
             <table className="w-full min-w-[640px] text-left text-[13px]">
-              <thead className="text-[11.5px] text-faint"><tr><th className="py-2 pr-3 font-medium">When</th><th className="pr-3 font-medium">Who</th><th className="pr-3 font-medium">Interested in</th><th className="pr-3 font-medium">Alert</th><th className="font-medium">Reference</th></tr></thead>
+              <thead className="text-[11.5px] text-faint"><tr><th className="py-2 pr-3 font-medium">When</th><th className="pr-3 font-medium">Who</th><th className="pr-3 font-medium">Interested in</th><th className="pr-3 font-medium">Alert</th><th className="pr-3 font-medium">Reference</th><th className="font-medium"><span className="sr-only">Delete</span></th></tr></thead>
               <tbody>
                 {leads.map((l) => (
                   <tr key={l.reference} className="border-t border-line align-top">
@@ -226,7 +276,8 @@ function LeadsSection() {
                     <td className="py-2 pr-3"><span className="font-medium">{l.name}</span>{l.business ? <span className="text-muted"> · {l.business}</span> : null}<br /><span className="text-muted">{[l.phone, l.email].filter(Boolean).join(" · ")}</span>{l.message ? <p className="mt-0.5 max-w-xs text-[12px] text-faint">{l.message}</p> : null}</td>
                     <td className="py-2 pr-3">{l.interest || l.kind}</td>
                     <td className="py-2 pr-3"><Badge tone={l.alert === "sent" ? "pos" : l.alert === "failed" ? "neg" : "warn"}>{l.alert === "sent" ? "Emailed" : l.alert === "failed" ? "Send failed" : "Not set up"}</Badge></td>
-                    <td className="py-2 font-mono text-[12px] text-muted">{l.reference}</td>
+                    <td className="py-2 pr-3 font-mono text-[12px] text-muted">{l.reference}</td>
+                    <td className="py-1"><Button size="icon" variant="ghost" aria-label={`Delete enquiry ${l.reference}`} onClick={() => del(l.reference)}><Trash2 /></Button></td>
                   </tr>
                 ))}
               </tbody>

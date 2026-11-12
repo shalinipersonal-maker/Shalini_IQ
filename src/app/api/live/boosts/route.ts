@@ -17,7 +17,7 @@ export async function GET() {
 const create = z.object({
   postId: z.string().uuid(),
   adAccount: z.string().regex(/^act_\d+$/),
-  dailyBudget: z.number().min(100, "Meta needs at least about ₹100 a day").max(5000, "Keep test boosts at ₹5,000 a day or less"),
+  dailyBudget: z.number().min(100, "Meta needs at least about ₹100 a day").max(5000, "Keep boosts at ₹5,000 a day or less"),
   days: z.number().int().min(1).max(14),
   ageMin: z.number().int().min(18).max(65).default(18),
   ageMax: z.number().int().min(18).max(65).default(65),

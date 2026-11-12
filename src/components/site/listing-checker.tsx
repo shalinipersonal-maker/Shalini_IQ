@@ -4,22 +4,16 @@ import * as React from "react";
 import { Button, Field, Input, Segmented, Textarea, cn } from "@/components/ui";
 import { autoFix, checkListing, MARKETPLACE_LABEL, POINT_PROMPTS, type FixAnswers, type FixPlan, type ListingInput, type ListingReport, type Marketplace } from "@/lib/site/listing-check";
 
-const EXAMPLE = {
-  title: "Handloom Cotton Saree for Women with Blouse Piece, Mustard Yellow, 5.5 m",
-  bullets: "Soft handloom cotton that stays cool and breathable through a full day of wear\nSaree length 5.5 m with a 0.8 m unstitched blouse piece in a matching colour\nContrast zari border and woven pallu, suited to office wear, festivals and family functions\nGentle hand wash in cold water; dry in shade to keep the colour bright",
-  description: "",
-  imageCount: 4,
-};
 const ICON = { pass: CircleCheck, warn: CircleAlert, fail: CircleX } as const;
 const TONE = { pass: "text-pos", warn: "text-warn", fail: "text-neg" } as const;
 
 export function ListingChecker() {
   const [mk, setMk] = React.useState<Marketplace>("amazon");
-  const [title, setTitle] = React.useState(EXAMPLE.title);
-  const [bullets, setBullets] = React.useState(EXAMPLE.bullets);
-  const [description, setDescription] = React.useState(EXAMPLE.description);
-  const [images, setImages] = React.useState(String(EXAMPLE.imageCount));
-  const [white, setWhite] = React.useState(true);
+  const [title, setTitle] = React.useState("");
+  const [bullets, setBullets] = React.useState("");
+  const [description, setDescription] = React.useState("");
+  const [images, setImages] = React.useState("0");
+  const [white, setWhite] = React.useState(false);
   const [report, setReport] = React.useState<ListingReport | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [fixOpen, setFixOpen] = React.useState(false);
@@ -57,7 +51,7 @@ export function ListingChecker() {
           <div className="flex h-full min-h-60 flex-col items-center justify-center text-center">
             <ScanSearch className="size-8 text-faint" aria-hidden />
             <p className="mt-3 text-[14px] font-semibold">Your report appears here</p>
-            <p className="mt-1 max-w-xs text-[13px] text-muted">A sample saree listing is filled in. Press “Check this listing”, then try your own.</p>
+            <p className="mt-1 max-w-xs text-[13px] text-muted">Paste your listing's title, key points and description, then press “Check this listing”.</p>
           </div>
         ) : (
           <>
