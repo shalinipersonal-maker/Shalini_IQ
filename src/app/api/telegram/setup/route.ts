@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const fixed = /^https:\/\/[^/]+$/.test(SITE.url) && !SITE.url.includes("entrabuild") ? SITE.url : here;
     const r = await setWebhook(fixed);
     if (!r.ok) return fail(r.error ?? "Telegram setup failed", 502);
-    const greeted = ownerChat() ? await notify("✅ <b>IQ is connected.</b> I'll tell you about new enquiries, posts, sales and boosts, and send a report every morning. Type /help to see what I can do.") : false;
+    const greeted = ownerChat() ? await notify("✅ <b>IQ is connected.</b> I'll tell you about new enquiries, posts, sales and boosts, and send reports at 9 AM, 12 PM, 6 PM and 9 PM. Type /help to see what I can do.") : false;
     return json({ ok: true, bot: r.bot, chatSet: !!ownerChat(), greeted });
   });
 }

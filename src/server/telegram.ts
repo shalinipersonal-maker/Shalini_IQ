@@ -105,6 +105,8 @@ const HELP = [
   "/posts — how your posts are doing",
   "/ads — boosts and spend",
   "/status — is everything connected and working?",
+  "",
+  "I also message you by myself, without being asked: new enquiries, new likes and comments, new Shopify orders, posts, boosts, sales uploads and syncs, anything deleted, anything that stops working (and when it is fixed), plus a full report at 9 AM, 12 PM, 6 PM and 9 PM.",
   "You can also just type: <i>sales</i>, <i>leads</i>, <i>posts</i>, <i>ads</i>.",
 ].join("\n");
 

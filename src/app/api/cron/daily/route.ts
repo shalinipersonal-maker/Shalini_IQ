@@ -1,9 +1,9 @@
 import { flipkartConfigured, fetchOrders } from "@/server/flipkart";
 import { watch } from "@/server/health";
-import { listPosts } from "@/server/meta";
-import { overview, ownerAccountId } from "@/server/overview";
+import { ownerAccountId } from "@/server/overview";
+import { sendDueReport } from "@/server/reports";
 import { replaceAutoSync } from "@/server/sales";
-import { dailyReport, notify } from "@/server/telegram";
+import { notify } from "@/server/telegram";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -19,7 +19,8 @@ export async function GET(request: Request) {
     catch (e) { synced = `\n⚠️ Flipkart refresh failed: ${e instanceof Error ? e.message : "error"}`; }
   }
   await watch().catch(() => null);
-  await listPosts(acc, true).catch(() => null);
-  await notify(dailyReport(await overview(acc)) + synced);
+  // The 9 AM report (sent once; the watchdog sends it instead if it gets there first).
+  const sent = await sendDueReport(synced).catch(() => null);
+  if (!sent && synced) await notify(synced.trim());
   return Response.json({ ok: true });
 }

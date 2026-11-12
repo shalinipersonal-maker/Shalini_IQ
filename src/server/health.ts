@@ -3,7 +3,7 @@ import { SITE } from "@/config/site";
 import { open as unseal } from "./connectors/token-vault";
 import { sql } from "./db";
 import { mailConfigured } from "./mail";
-import { graph } from "./meta";
+import { graph, listPosts } from "./meta";
 import { ownerAccountId } from "./overview";
 import { newOrders, shopInfo, shopifyConfigured } from "./shopify";
 import { notify, repairWebhook, telegramConfigured } from "./telegram";
@@ -87,6 +87,29 @@ export async function watch(): Promise<{ checks: Check[]; changed: number }> {
       }
       const newest = fresh[0]?.createdAt ?? since;
       await sql(`INSERT INTO live_kv (account_id, k, v) VALUES ($1, 'shopify_last', $2) ON CONFLICT (account_id, k) DO UPDATE SET v = EXCLUDED.v`, [acc, newest]);
+    } catch { /* try again next run */ }
+  }
+  // New likes and comments on her posts since the last check (every 15 minutes).
+  if (acc !== "system") {
+    try {
+      const { posts } = await listPosts(acc, true);
+      const seenRow = (await sql(`SELECT v FROM live_kv WHERE account_id = $1 AND k = 'posts_seen'`, [acc]))[0]?.v;
+      const seen: Record<string, [number, number]> = seenRow ? JSON.parse(seenRow) : {};
+      const nowSeen: Record<string, [number, number]> = {};
+      const lines: string[] = [];
+      const esc = (x: string) => x.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
+      for (const p of posts) {
+        if (p.status !== "published") continue;
+        const l = p.likes ?? 0, cm = p.comments ?? 0; nowSeen[p.id] = [l, cm];
+        const old = seen[p.id];
+        if (!seenRow || !old) continue;
+        const dl = l - old[0], dc = cm - old[1];
+        if (dl > 0 || dc > 0) lines.push(`• ${esc(p.targetName)}: ${dc > 0 ? `💬 +${dc} comment${dc > 1 ? "s" : ""} ` : ""}${dl > 0 ? `👍 +${dl} like${dl > 1 ? "s" : ""}` : ""}
+  “${esc(p.caption.slice(0, 60))}”${p.permalink ? `
+  ${esc(p.permalink)}` : ""}`);
+      }
+      if (lines.length) await notify(`🔔 <b>New activity on your posts</b>\n${lines.slice(0, 8).join("\n")}`);
+      await sql(`INSERT INTO live_kv (account_id, k, v) VALUES ($1, 'posts_seen', $2) ON CONFLICT (account_id, k) DO UPDATE SET v = EXCLUDED.v`, [acc, JSON.stringify(nowSeen)]);
     } catch { /* try again next run */ }
   }
   await sql(`INSERT INTO live_kv (account_id, k, v) VALUES ($1, 'health', $2) ON CONFLICT (account_id, k) DO UPDATE SET v = EXCLUDED.v`, [acc, JSON.stringify(now)]).catch(() => null);

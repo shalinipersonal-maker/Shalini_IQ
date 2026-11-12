@@ -93,7 +93,7 @@ export function TelegramCard({ token, chat, cron }: { token: boolean; chat: bool
   };
   return (
     <Card id="telegram" className="scroll-mt-20">
-      <CardHeader title="IQ on Telegram" subtitle="Your assistant: alerts for every enquiry, post, sales sync and boost, a report every morning at 9, and answers when you type /today, /sales, /leads, /posts or /ads." />
+      <CardHeader title="IQ on Telegram" subtitle="Your assistant: alerts for every enquiry, post, sales sync and boost, reports at 9 AM, 12 PM, 6 PM and 9 PM, and answers when you type /today, /sales, /leads, /posts or /ads." />
       <div className="space-y-3 px-5 pb-5 text-[13px]">
         <div className="flex flex-wrap gap-2">
           <Badge tone={token ? "pos" : "neutral"} dot>{token ? "Bot token added" : "Bot token missing"}</Badge>

@@ -3,6 +3,7 @@ import { num, sql } from "@/server/db";
 import { saveRows } from "@/server/sales";
 import { fail, json, withAccount } from "@/server/live-api";
 
+import { notify } from "@/server/telegram";
 export const dynamic = "force-dynamic";
 
 const row = z.object({
@@ -26,6 +27,8 @@ export async function POST(request: Request) {
     if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Check the file", 422);
     const { source, fileName, rows } = parsed.data;
     const uploadId = await saveRows(a.id, source, fileName, rows);
+    const total = rows.reduce((n, r) => n + (Number(r.amount) || 0), 0);
+    await notify(`📤 <b>Sales report uploaded</b>: ${source} · ${rows.length} lines · ₹${Math.round(total).toLocaleString("en-IN")}`);
     return json({ ok: true, uploadId, rows: rows.length });
   });
 }
@@ -53,6 +56,8 @@ export async function GET() {
 export async function DELETE(request: Request) {
   return withAccount(async (a) => {
     const id = new URL(request.url).searchParams.get("upload") ?? "";
+    const [u] = await sql(`SELECT source, file_name, row_count FROM live_uploads WHERE account_id = $1 AND id = $2`, [a.id, id]);
+    if (u) await notify(`🗑 <b>Sales report removed</b>: ${String(u.source)} · ${String(u.file_name).replace(/[<>&]/g, "")} (${String(u.row_count)} lines)`);
     await sql(`DELETE FROM live_sales WHERE account_id = $1 AND upload_id = $2`, [a.id, id]);
     await sql(`DELETE FROM live_uploads WHERE account_id = $1 AND id = $2`, [a.id, id]);
     return json({ ok: true });

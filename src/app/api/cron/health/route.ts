@@ -1,4 +1,5 @@
 import { watch } from "@/server/health";
+import { sendDueReport } from "@/server/reports";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -7,6 +8,7 @@ export const maxDuration = 60;
 export async function GET(request: Request) {
   if (!process.env.CRON_SECRET || request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) return new Response("Forbidden", { status: 403 });
   const { checks, changed } = await watch();
+  const report = await sendDueReport().catch(() => null); // 9 AM, 12 PM, 6 PM, 9 PM IST
   const failing = checks.filter((c) => !c.ok);
-  return Response.json({ ok: failing.length === 0, failing: failing.map((c) => c.label), changed }, { status: failing.length ? 207 : 200 });
+  return Response.json({ ok: failing.length === 0, failing: failing.map((c) => c.label), changed, report }, { status: failing.length ? 207 : 200 });
 }
